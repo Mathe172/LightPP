@@ -1,0 +1,19 @@
+[
+	{
+		"modid": "lightpp",
+		"name": "Light++",
+		"description": "Improves Minecraft's lighting engine to be faster & bugfree",
+		"version": "${version}",
+		"mcversion": "${mcversion}",
+		"url": "https://github.com/OverengineeredCodingDuo/LightPP",
+		"updateUrl": "",
+		"authorList": [
+			"PhiPro95",
+			"Mathe172"
+		],
+		"credits": "",
+		"logoFile": "",
+		"screenshots": [],
+		"dependencies": []
+	}
+]
