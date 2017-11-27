@@ -1,3 +1,5 @@
+import net.minecraftforge.gradle.user.TaskSingleReobf
+
 buildscript {
 	repositories {
 		jcenter()
@@ -5,13 +7,20 @@ buildscript {
 			name = "forge"
 			url = "https://files.minecraftforge.net/maven"
 		}
+		maven {
+			name = "spongepowered"
+			url = "http://repo.spongepowered.org/maven"
+		}
 	}
+
 	dependencies {
-		classpath "net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT"
+		classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+		classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
 	}
 }
 
-apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'org.spongepowered.mixin'
 
 version = modVersion
 group = modGroup
@@ -25,13 +34,47 @@ minecraft {
 
 	replace "@@MOD_VERSION@@", modVersion
 	replaceIn "ocd/lightpp/LightPP.java"
+
+	def args = [
+			"-Dmixin.debug.export=true", // Export classes from mixin to runDirectory/.mixin.out
+			"-Dmixin.debug.verbose=true", // Verbose mixin output for easier debugging of mixins
+			"-Dmixin.checks=true" // Check if all interface methods are overridden in mixin
+	]
+
+	clientJvmArgs.addAll args
+	serverJvmArgs.addAll args
+
+	def runArgs = [
+			"--tweakClass",
+			"org.spongepowered.asm.launch.MixinTweaker",
+			"--mixin",
+			"mixins.ocd.lightpp.json"
+	]
+
+	clientRunArgs.addAll runArgs
+	serverRunArgs.addAll runArgs
+}
+
+mixin {
+	add sourceSets.main, "mixins.ocd.lightpp.refmap.json"
 }
 
 repositories {
 	mavenCentral()
+
+	maven {
+		name = "spongepowered"
+		url = "http://repo.spongepowered.org/maven"
+	}
 }
 
+Dependency mixinDep
+
 dependencies {
+	mixinDep = compile('org.spongepowered:mixin:0.7.5-SNAPSHOT')
+			{
+				transitive = false
+			}
 }
 
 processResources {
@@ -51,4 +94,46 @@ processResources {
 	from(sourceSets.main.resources.srcDirs) {
 		exclude "mcmod.info"
 	}
+}
+
+jar {
+	manifest {
+		attributes(
+				"TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+				"TweakOrder": 0,
+				"MixinConfigs": "mixins.ocd.lightpp.json",
+				"ForceLoadAsMod": "true"
+		)
+	}
+}
+
+
+task shadowJar(type: Jar, dependsOn: reobfJar) {
+	classifier = 'all'
+
+	from { zipTree(((TaskSingleReobf) reobfJar).getJar()) }
+
+	manifest {
+		from jar.manifest
+	}
+
+	from { zipTree(configurations.compile.fileCollection(mixinDep).getSingleFile()) }
+			{
+				rename 'LICENSE.txt', 'org/spongepowered/LICENSE.txt'
+				exclude 'META-INF/*.SF'
+				exclude 'META-INF/*.RSA'
+				exclude 'META-INF/*.MF'
+			}
+}
+
+artifacts {
+	archives shadowJar
+}
+
+runClient {
+	outputs.upToDateWhen { false }
+}
+
+runServer {
+	outputs.upToDateWhen { false }
 }

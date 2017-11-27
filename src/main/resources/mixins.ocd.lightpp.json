@@ -1,0 +1,7 @@
+{
+	"package": "ocd.lightpp.mixin",
+	"refmap": "mixins.ocd.lightpp.refmap.json",
+	"compatibilityLevel": "JAVA_8",
+	"minVersion": "0.7.5",
+	"mixins": []
+}
