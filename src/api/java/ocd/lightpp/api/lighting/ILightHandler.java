@@ -53,9 +53,7 @@ public interface ILightHandler extends ILightAccess
 
 	void markForRecheck(EnumFacing dir);
 
-	void markForBrightening(EnumFacing dir);
-
-	void markForDarkening(EnumFacing dir);
+	void markForSpread(EnumFacing dir);
 
 	interface LightUpdateQueue
 	{
