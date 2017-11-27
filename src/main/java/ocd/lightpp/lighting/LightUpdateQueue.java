@@ -22,34 +22,28 @@
  * SOFTWARE.
  */
 
-package ocd.lightpp;
+package ocd.lightpp.lighting;
 
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
-import ocd.lightpp.lighting.LightingEngine;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 
-@Mod(
-	modid = LightPP.MOD_ID,
-	name = LightPP.MOD_NAME,
-	version = LightPP.VERSION
-)
-public class LightPP
+public interface LightUpdateQueue
 {
-	public static final String MOD_ID = "lightpp";
-	public static final String MOD_NAME = "Light++";
-	public static final String VERSION = "@@MOD_VERSION@@";
+	/**
+	 * Polls a new item from <code>curQueue</code> and fills in state data members
+	 *
+	 * @return If there was an item to poll
+	 */
+	boolean next();
+
+	BlockPos curPos();
+
+	BlockPos neighborPos(EnumFacing dir);
 
 	/**
-	 * This is the instance of your mod as created by Forge. It will never be null.
+	 * Gets data for neighbors of <code>curPos</code> and saves the results into neighbor state data members. If a neighbor can't be accessed/doesn't exist, the corresponding entry in <code>neighborChunks</code> is <code>null</code> - others are not reset
 	 */
-	@Mod.Instance(MOD_ID)
-	public static LightPP INSTANCE;
+	void fetchNeighborData();
 
-	@EventHandler
-	public void foo(final FMLServerStartedEvent ev)
-	{
-		final LightingEngine bar = new LightingEngine(null, null, null);
-		bar.procLightUpdates();
-	}
+	boolean doesNeighborExist(EnumFacing dir);
 }

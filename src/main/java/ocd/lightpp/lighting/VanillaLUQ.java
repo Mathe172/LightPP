@@ -22,34 +22,40 @@
  * SOFTWARE.
  */
 
-package ocd.lightpp;
+package ocd.lightpp.lighting;
 
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
-import ocd.lightpp.lighting.LightingEngine;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 
-@Mod(
-	modid = LightPP.MOD_ID,
-	name = LightPP.MOD_NAME,
-	version = LightPP.VERSION
-)
-public class LightPP
+public class VanillaLUQ implements LightUpdateQueue
 {
-	public static final String MOD_ID = "lightpp";
-	public static final String MOD_NAME = "Light++";
-	public static final String VERSION = "@@MOD_VERSION@@";
-
-	/**
-	 * This is the instance of your mod as created by Forge. It will never be null.
-	 */
-	@Mod.Instance(MOD_ID)
-	public static LightPP INSTANCE;
-
-	@EventHandler
-	public void foo(final FMLServerStartedEvent ev)
+	@Override
+	public boolean next()
 	{
-		final LightingEngine bar = new LightingEngine(null, null, null);
-		bar.procLightUpdates();
+		return false;
+	}
+
+	@Override
+	public BlockPos curPos()
+	{
+		return null;
+	}
+
+	@Override
+	public BlockPos neighborPos(final EnumFacing dir)
+	{
+		return null;
+	}
+
+	@Override
+	public void fetchNeighborData()
+	{
+
+	}
+
+	@Override
+	public boolean doesNeighborExist(final EnumFacing dir)
+	{
+		return false;
 	}
 }

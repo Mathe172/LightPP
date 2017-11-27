@@ -31,40 +31,44 @@ import net.minecraft.world.EnumSkyBlock;
 
 public interface ILightHandler extends ILightAccess
 {
-    LightUpdateQueue createQueue();
+	LightUpdateQueue createQueue();
 
-    boolean next();
+	boolean next();
 
-    void cleanup();
+	void cleanup();
 
-    EnumSkyBlock getLightType();
+	EnumSkyBlock getLightType();
 
-    ILightAccess getNeighborLightAccess(EnumFacing dir);
+	ILightAccess getNeighborLightAccess(EnumFacing dir);
 
-    void setLight(int val);
+	void setLight(int val);
 
-    void setLight(EnumFacing dir, int val);
+	void setLight(EnumFacing dir, int val);
 
-    void trackDarkening(EnumFacing dir);
+	void notifyLightSet();
 
-    void trackBrightening(EnumFacing dir);
+	void trackDarkening(EnumFacing dir);
 
-    void markForRecheck(EnumFacing dir);
+	void trackBrightening(EnumFacing dir);
 
-    void markForSpread(EnumFacing dir);
+	void markForRecheck(EnumFacing dir);
 
-    interface LightUpdateQueue
-    {
-        void activate();
+	void markForBrightening(EnumFacing dir);
 
-        void accept();
+	void markForDarkening(EnumFacing dir);
 
-        void accept(EnumFacing dir);
+	interface LightUpdateQueue
+	{
+		void activate();
 
-        void accept(BlockPos pos, EnumSkyBlock lightType);
+		void accept();
 
-        int size();
+		void accept(EnumFacing dir);
 
-        boolean isEmpty();
-    }
+		void accept(BlockPos pos, EnumSkyBlock lightType);
+
+		int size();
+
+		boolean isEmpty();
+	}
 }

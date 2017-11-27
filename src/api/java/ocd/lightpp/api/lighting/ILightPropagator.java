@@ -30,23 +30,28 @@ import net.minecraft.world.EnumSkyBlock;
 
 public interface ILightPropagator
 {
-    void prepareCalc(EnumSkyBlock lightType, ILightAccess lightAccess);
+	void prepareCalc(ILightAccess lightAccess);
 
-    void prepareSpread(EnumSkyBlock lightType, int light);
+	void prepareSpread(int light);
 
-    int getSourceLight(EnumSkyBlock lightType, ILightAccess lightAccess);
+	int getSourceLight(ILightAccess lightAccess);
 
-    int getMaxNeighborLight(EnumSkyBlock lightType, ILightAccess lightAccess);
+	int getMaxNeighborLight(ILightAccess lightAccess);
 
-    int getMaxNeighborLight(EnumSkyBlock lightType, EnumFacing dir, ILightAccess lightAccess);
+	int getMaxNeighborLight(EnumFacing dir, ILightAccess lightAccess);
 
-    EnumFacing[] getLookupOrder(EnumSkyBlock lightType, ILightAccess lightAccess);
+	EnumFacing[] getLookupOrder(ILightAccess lightAccess);
 
-    boolean canSpread(EnumSkyBlock lightType, int light);
+	int getMaxSpread(int light);
 
-    boolean canSpread(EnumSkyBlock lightType, EnumFacing dir, int light);
+	int getMaxSpread(EnumFacing dir, int light);
 
-    int calcLight(EnumSkyBlock lightType, EnumFacing dir, ILightAccess lightAccess, int neighborLight);
+	int calcLight(EnumFacing dir, ILightAccess lightAccess, int neighborLight);
 
-    int calcSpread(EnumSkyBlock lightType, EnumFacing dir, int light, ILightAccess neighborLightAccess);
+	int calcSpread(EnumFacing dir, int light, ILightAccess neighborLightAccess);
+
+	interface Factory
+	{
+		ILightPropagator create(EnumSkyBlock lightType);
+	}
 }

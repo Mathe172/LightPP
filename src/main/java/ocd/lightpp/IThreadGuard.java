@@ -24,32 +24,37 @@
 
 package ocd.lightpp;
 
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
-import ocd.lightpp.lighting.LightingEngine;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.common.SidedProxy;
 
-@Mod(
-	modid = LightPP.MOD_ID,
-	name = LightPP.MOD_NAME,
-	version = LightPP.VERSION
-)
-public class LightPP
+public abstract class IThreadGuard
 {
-	public static final String MOD_ID = "lightpp";
-	public static final String MOD_NAME = "Light++";
-	public static final String VERSION = "@@MOD_VERSION@@";
-
-	/**
-	 * This is the instance of your mod as created by Forge. It will never be null.
-	 */
-	@Mod.Instance(MOD_ID)
-	public static LightPP INSTANCE;
-
-	@EventHandler
-	public void foo(final FMLServerStartedEvent ev)
+	public static boolean isNotRenderingThread(final World world)
 	{
-		final LightingEngine bar = new LightingEngine(null, null, null);
-		bar.procLightUpdates();
+		return threadGuard.isNotRenderingThread_(world);
+	}
+
+	public abstract boolean isNotRenderingThread_(World world);
+
+	@SidedProxy
+	public static IThreadGuard threadGuard;
+
+	public static class ClientProxy extends IThreadGuard
+	{
+		@Override
+		public boolean isNotRenderingThread_(final World world)
+		{
+			return !world.isRemote || Minecraft.getMinecraft().isCallingFromMinecraftThread();
+		}
+	}
+
+	public static class ServerProxy extends IThreadGuard
+	{
+		@Override
+		public boolean isNotRenderingThread_(final World world)
+		{
+			return true;
+		}
 	}
 }

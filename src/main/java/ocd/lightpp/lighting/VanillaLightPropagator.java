@@ -31,99 +31,147 @@ import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightPropagator;
 
-public class VanillaLightPropagator implements ILightPropagator
+public abstract class VanillaLightPropagator implements ILightPropagator
 {
-    private int sourceLight;
-    private int opacity;
-    private int maxLight;
+	protected int opacity;
+	protected int maxLight;
 
-    private static final EnumFacing[] lookupOrder =
-        new EnumFacing[] {EnumFacing.UP, EnumFacing.DOWN, EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
+	private static final EnumFacing[] lookupOrder =
+		new EnumFacing[] {EnumFacing.UP, EnumFacing.DOWN, EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
 
-    @Override
-    public void prepareCalc(final EnumSkyBlock lightType, final ILightAccess lightAccess)
-    {
-        final IBlockState state = lightAccess.getBlockState();
+	@Override
+	public void prepareSpread(final int light)
+	{
+	}
 
-        if (lightType == EnumSkyBlock.BLOCK)
-        {
-            this.sourceLight = state.getLightValue(lightAccess.getWorld(), lightAccess.getPos());
+	@Override
+	public int getMaxNeighborLight(final ILightAccess lightAccess)
+	{
+		return this.maxLight;
+	}
 
-            if (this.sourceLight >= LightingEngine.MAX_LIGHT)
-            {
-                this.opacity = 1;
-                this.maxLight = LightingEngine.MAX_LIGHT - 1;
-                return;
-            }
-        }
-        else
-            this.sourceLight = 0;
+	@Override
+	public int getMaxNeighborLight(final EnumFacing dir, final ILightAccess lightAccess)
+	{
+		return this.maxLight;
+	}
 
-        this.opacity = state.getLightOpacity(lightAccess.getWorld(), lightAccess.getPos());
-        this.maxLight = LightingEngine.MAX_LIGHT - this.opacity;
-    }
+	@Override
+	public EnumFacing[] getLookupOrder(final ILightAccess lightAccess)
+	{
+		return lookupOrder;
+	}
 
-    @Override
-    public void prepareSpread(final EnumSkyBlock lightType, final int light)
-    {
-    }
+	@Override
+	public int getMaxSpread(final int light)
+	{
+		return light - 1;
+	}
 
-    @Override
-    public int getSourceLight(final EnumSkyBlock lightType, final ILightAccess lightAccess)
-    {
-        return this.sourceLight;
-    }
+	@Override
+	public int getMaxSpread(final EnumFacing dir, final int light)
+	{
+		return light - 1;
+	}
 
-    @Override
-    public int getMaxNeighborLight(final EnumSkyBlock lightType, final ILightAccess lightAccess)
-    {
-        return lightType == EnumSkyBlock.SKY ? LightingEngine.MAX_LIGHT : this.maxLight;
-    }
+	@Override
+	public int calcLight(final EnumFacing dir, final ILightAccess lightAccess, final int neighborLight)
+	{
+		return this.calcSpread(dir.getOpposite(), neighborLight, this.opacity);
+	}
 
-    @Override
-    public int getMaxNeighborLight(final EnumSkyBlock lightType, final EnumFacing dir, final ILightAccess lightAccess)
-    {
-        if (lightType == EnumSkyBlock.SKY && dir == EnumFacing.UP && this.opacity == 0)
-            return LightingEngine.MAX_LIGHT;
+	@Override
+	public int calcSpread(final EnumFacing dir, final int light, final ILightAccess neighborLightAccess)
+	{
+		return this.calcSpread(dir, light, neighborLightAccess.getLightOpacity());
+	}
 
-        return this.maxLight;
-    }
+	protected int calcSpread(final EnumFacing dir, final int sourceLight, final int targetOpac)
+	{
+		return sourceLight - Math.min(targetOpac, 1);
+	}
 
-    @Override
-    public EnumFacing[] getLookupOrder(final EnumSkyBlock lightType, final ILightAccess lightAccess)
-    {
-        return lookupOrder;
-    }
+	public static class Block extends VanillaLightPropagator
+	{
+		private int sourceLight;
 
-    @Override
-    public boolean canSpread(final EnumSkyBlock lightType, final int light)
-    {
-        return light > 1;
-    }
+		@Override
+		public void prepareCalc(final ILightAccess lightAccess)
+		{
+			final IBlockState state = lightAccess.getBlockState();
 
-    @Override
-    public boolean canSpread(final EnumSkyBlock lightType, final EnumFacing dir, final int light)
-    {
-        return true;
-    }
+			this.sourceLight = state.getLightValue(lightAccess.getWorld(), lightAccess.getPos());
 
-    @Override
-    public int calcLight(final EnumSkyBlock lightType, final EnumFacing dir, final ILightAccess lightAccess, final int neighborLight)
-    {
-        if (lightType == EnumSkyBlock.SKY && dir == EnumFacing.UP && neighborLight == 15 && this.opacity == 0)
-            return 15;
-        else
-            return neighborLight - this.opacity;
-    }
+			if (this.sourceLight >= LightingEngine.MAX_LIGHT - 1)
+				this.opacity = 1;
+			else
+				this.opacity = state.getLightOpacity(lightAccess.getWorld(), lightAccess.getPos());
 
-    @Override
-    public int calcSpread(final EnumSkyBlock lightType, final EnumFacing dir, final int light, final ILightAccess neighborLightAccess)
-    {
-        final int neighborOpac = neighborLightAccess.getBlockState().getLightOpacity(neighborLightAccess.getWorld(), neighborLightAccess.getPos());
+			this.maxLight = LightingEngine.MAX_LIGHT - Math.min(this.opacity, 1);
+		}
 
-        if (light == 15 && lightType == EnumSkyBlock.SKY && dir == EnumFacing.DOWN && neighborOpac == 0)
-            return 15;
-        else
-            return light - neighborOpac;
-    }
+		@Override
+		public int getSourceLight(final ILightAccess lightAccess)
+		{
+			return this.sourceLight;
+		}
+	}
+
+	public static class Sky extends VanillaLightPropagator
+	{
+		@Override
+		public void prepareCalc(final ILightAccess lightAccess)
+		{
+			this.opacity = lightAccess.getLightOpacity();
+			this.maxLight = LightingEngine.MAX_LIGHT - Math.min(this.opacity, 1);
+		}
+
+		@Override
+		public int getSourceLight(final ILightAccess lightAccess)
+		{
+			return 0;
+		}
+
+		@Override
+		public int getMaxNeighborLight(final ILightAccess lightAccess)
+		{
+			return LightingEngine.MAX_LIGHT;
+		}
+
+		@Override
+		public int getMaxNeighborLight(final EnumFacing dir, final ILightAccess lightAccess)
+		{
+			if (dir == EnumFacing.UP && this.opacity == 0)
+				return EnumSkyBlock.SKY.defaultLightValue;
+
+			return super.getMaxNeighborLight(dir, lightAccess);
+		}
+
+		@Override
+		public int getMaxSpread(final int light)
+		{
+			if (light == EnumSkyBlock.SKY.defaultLightValue)
+				return EnumSkyBlock.SKY.defaultLightValue;
+
+			return super.getMaxSpread(light);
+		}
+
+		@Override
+		public int getMaxSpread(final EnumFacing dir, final int light)
+		{
+			if (light == EnumSkyBlock.SKY.defaultLightValue && dir == EnumFacing.DOWN)
+				return EnumSkyBlock.SKY.defaultLightValue;
+
+			return super.getMaxSpread(dir, light);
+		}
+
+		@Override
+		protected int calcSpread(final EnumFacing dir, final int sourceLight, final int targetOpac)
+		{
+			if (sourceLight == EnumSkyBlock.SKY.defaultLightValue && dir == EnumFacing.DOWN && targetOpac == 0)
+				return EnumSkyBlock.SKY.defaultLightValue;
+
+			return super.calcSpread(dir, sourceLight, targetOpac);
+		}
+	}
 }

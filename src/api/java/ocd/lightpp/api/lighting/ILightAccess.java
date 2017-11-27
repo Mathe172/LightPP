@@ -42,4 +42,9 @@ public interface ILightAccess
     int getLight();
 
     IBlockState getBlockState();
+
+    default int getLightOpacity()
+    {
+        return this.getBlockState().getLightOpacity(this.getWorld(), this.getPos());
+    }
 }
