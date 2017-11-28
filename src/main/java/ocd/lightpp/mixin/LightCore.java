@@ -20,26 +20,36 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp;
+package ocd.lightpp.mixin;
 
-import net.minecraftforge.fml.common.Mod;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mod(
-	modid = LightPP.MOD_ID,
-	name = LightPP.MOD_NAME,
-	version = LightPP.VERSION
-)
-public class LightPP
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.World;
+import ocd.lightpp.api.lighting.ILightManager;
+import ocd.lightpp.lighting.LightingEngine;
+
+@Mixin(World.class)
+public abstract class LightCore implements ILightManager
 {
-	public static final String MOD_ID = "lightpp";
-	public static final String MOD_NAME = "Light++";
-	public static final String VERSION = "@@MOD_VERSION@@";
+	final LightingEngine lightingEngine = new LightingEngine((World) (Object) this);
 
-	/**
-	 * This is the instance of your mod as created by Forge. It will never be null.
-	 */
-	@Mod.Instance(MOD_ID)
-	public static LightPP INSTANCE;
+	@Inject(
+		method = "checkLightFor(Lnet/minecraft/world/EnumSkyBlock;Lnet/minecraft/util/math/BlockPos;)Z",
+		at = @At("HEAD"),
+		cancellable = true)
+	public void calcLight(final EnumSkyBlock lightType, final BlockPos pos, final CallbackInfoReturnable<Boolean> ci)
+	{
+		this.lightingEngine.scheduleLightUpdate(lightType, pos);
+		this.lightingEngine.procLightUpdates();
+		ci.setReturnValue(true);
+	}
 }

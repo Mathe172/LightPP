@@ -20,26 +20,14 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp;
+package ocd.lightpp.api.lighting;
 
-import net.minecraftforge.fml.common.Mod;
-
-@Mod(
-	modid = LightPP.MOD_ID,
-	name = LightPP.MOD_NAME,
-	version = LightPP.VERSION
-)
-public class LightPP
+public interface ILightManager
 {
-	public static final String MOD_ID = "lightpp";
-	public static final String MOD_NAME = "Light++";
-	public static final String VERSION = "@@MOD_VERSION@@";
+	ILightHandler createLightHandler();
 
-	/**
-	 * This is the instance of your mod as created by Forge. It will never be null.
-	 */
-	@Mod.Instance(MOD_ID)
-	public static LightPP INSTANCE;
+	ILightPropagator.Factory createLightPropagator();
 }

@@ -20,26 +20,30 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp;
+package ocd.lightpp.mixin;
 
-import net.minecraftforge.fml.common.Mod;
+import org.spongepowered.asm.mixin.Mixin;
 
-@Mod(
-	modid = LightPP.MOD_ID,
-	name = LightPP.MOD_NAME,
-	version = LightPP.VERSION
-)
-public class LightPP
+import net.minecraft.world.World;
+import ocd.lightpp.api.lighting.ILightHandler;
+import ocd.lightpp.api.lighting.ILightManager;
+import ocd.lightpp.api.lighting.ILightPropagator.Factory;
+
+@Mixin(World.class)
+public abstract class VanillaLightManager implements ILightManager
 {
-	public static final String MOD_ID = "lightpp";
-	public static final String MOD_NAME = "Light++";
-	public static final String VERSION = "@@MOD_VERSION@@";
+	@Override
+	public ILightHandler createLightHandler()
+	{
+		return null;
+	}
 
-	/**
-	 * This is the instance of your mod as created by Forge. It will never be null.
-	 */
-	@Mod.Instance(MOD_ID)
-	public static LightPP INSTANCE;
+	@Override
+	public Factory createLightPropagator()
+	{
+		return null;
+	}
 }

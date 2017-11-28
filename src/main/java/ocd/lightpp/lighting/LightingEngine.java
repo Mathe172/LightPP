@@ -34,6 +34,7 @@ import ocd.lightpp.IThreadGuard;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightHandler;
 import ocd.lightpp.api.lighting.ILightHandler.LightUpdateQueue;
+import ocd.lightpp.api.lighting.ILightManager;
 import ocd.lightpp.api.lighting.ILightPropagator;
 
 public class LightingEngine
@@ -64,35 +65,39 @@ public class LightingEngine
 	private final int[] maxNeighborSpread = new int[6];
 	private final int[] maxNeighborLight = new int[6];
 
-	public LightingEngine(final World world, final ILightHandler lightHandler, final ILightPropagator.Factory lightPropagator)
+	public LightingEngine(final World world)
 	{
 		this.world = world;
 		this.profiler = world.profiler;
 
-		this.lightHandler = lightHandler;
+		final ILightManager lightManager = (ILightManager) world;
+
+		this.lightHandler = lightManager.createLightHandler();
+
+		final ILightPropagator.Factory lightPropagator = lightManager.createLightPropagator();
 
 		for (final EnumSkyBlock lightType : LIGHT_TYPE_VALUES)
 			this.lightPropagators[lightType.ordinal()] = lightPropagator.create(lightType);
 
 		for (int i = 0; i < LIGHT_TYPE_VALUES.length; ++i)
-			this.queuedLightUpdates[i] = lightHandler.createQueue();
+			this.queuedLightUpdates[i] = this.lightHandler.createQueue();
 
 		for (int i = 0; i < this.queuedDarkenings.length; ++i)
-			this.queuedDarkenings[i] = lightHandler.createQueue();
+			this.queuedDarkenings[i] = this.lightHandler.createQueue();
 
 		for (int i = 0; i < this.queuedBrightenings.length; ++i)
-			this.queuedBrightenings[i] = lightHandler.createQueue();
+			this.queuedBrightenings[i] = this.lightHandler.createQueue();
 
-		this.initialDarkenings = lightHandler.createQueue();
+		this.initialDarkenings = this.lightHandler.createQueue();
 
 		for (int i = 0; i < this.initialBrightenings.length; ++i)
-			this.initialBrightenings[i] = lightHandler.createQueue();
+			this.initialBrightenings[i] = this.lightHandler.createQueue();
 	}
 
 	/**
 	 * Schedules a light update for the specified light type and position to be processed later by {@link #procLightUpdates()}
 	 */
-	private void scheduleLightUpdate(final EnumSkyBlock lightType, final BlockPos pos)
+	public void scheduleLightUpdate(final EnumSkyBlock lightType, final BlockPos pos)
 	{
 		final LightUpdateQueue queue = this.queuedLightUpdates[lightType.ordinal()];
 
