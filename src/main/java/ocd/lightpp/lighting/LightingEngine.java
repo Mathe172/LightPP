@@ -188,7 +188,7 @@ public class LightingEngine
 		}
 
 		//Sets the light to newLight to only schedule once. Clear leading bits of curData for later
-		for (int curLight = MAX_LIGHT; curLight > 0; ++curLight)
+		for (int curLight = MAX_LIGHT; curLight > 0; --curLight)
 			for (this.initialBrightenings[curLight].activate(); this.lightHandler.next(); )
 				if (curLight > this.lightHandler.getLight(this.lightHandler.getLightType()))
 					this.enqueueBrightening(curLight);
@@ -324,7 +324,7 @@ public class LightingEngine
 
 						final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
 
-						if (neighborLightAccess.isValid() && this.maxNeighborSpread[i] > 0)
+						if (this.maxNeighborSpread[i] > 0 && neighborLightAccess.isValid() && neighborLightAccess.isLoaded())
 						{
 							final int oldNeighborLight = neighborLightAccess.getLight(lightType);
 
@@ -424,9 +424,9 @@ public class LightingEngine
 						this.lightHandler.markForSpread(dir);
 				}
 			}
-		}
 
-		this.profiler.endSection();
+			this.profiler.endSection();
+		}
 
 		this.lightHandler.cleanup();
 

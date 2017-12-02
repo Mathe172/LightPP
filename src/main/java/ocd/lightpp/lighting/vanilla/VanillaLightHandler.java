@@ -109,7 +109,7 @@ public class VanillaLightHandler extends VanillaLightAccess implements ILightHan
 		for (int i = 0; i < 6; ++i)
 			this.neighbors[i].setData(this.curData + neighborShifts[i]);
 
-		this.curLightType = LightingEngine.LIGHT_TYPE_VALUES[(int) ((this.curData & mL) >> sL)];
+		this.curLightType = LightingEngine.LIGHT_TYPE_VALUES[(int) (this.curData >> sL & mL)];
 
 		return true;
 	}
@@ -132,7 +132,19 @@ public class VanillaLightHandler extends VanillaLightAccess implements ILightHan
 	@Override
 	public ILightAccess getNeighborLightAccess(final EnumFacing dir)
 	{
-		return null;
+		return this.neighbors[dir.ordinal()];
+	}
+
+	@Nullable
+	@Override
+	Chunk getChunk()
+	{
+		if (this.chunkValid)
+			return this.curChunk;
+
+		this.chunkValid = true;
+
+		return this.curChunk = this.getLightHandler().world.getChunkProvider().getLoadedChunk(this.curPos.getX() >> 4, this.curPos.getZ() >> 4);
 	}
 
 	@Override
@@ -231,7 +243,7 @@ abstract class VanillaLightAccess implements ILightAccess
 		sZ = 0,
 		sX = sZ + lZ,
 		sY = sX + lX,
-		sL = sY + lY;
+		sL = sY + lY + 1;
 
 	//Bit segment masks
 	static final long
@@ -242,15 +254,15 @@ abstract class VanillaLightAccess implements ILightAccess
 		mPos = (mY << sY) | (mX << sX) | (mZ << sZ);
 
 	//Bit to check whether y had overflow
-	private static final long yCheck = 1L << (sY + lY);
+	protected static final long yCheck = 1L << (sY + lY);
 
 	//Mask to extract chunk idenitfier
 	static final long mChunk = ((mX >> 4) << (4 + sX)) | ((mZ >> 4) << (4 + sZ));
 
 	long curData;
 	final MutableBlockPos curPos = new MutableBlockPos();
-	private boolean chunkValid;
-	long curChunkID;
+	protected boolean chunkValid;
+	long curChunkID = -1;
 	@Nullable
 	Chunk curChunk;
 
@@ -301,7 +313,7 @@ abstract class VanillaLightAccess implements ILightAccess
 	@Override
 	public IBlockAccess getBlockAccess()
 	{
-		return this.getLightHandler().getBlockAccess();
+		return this.getLightHandler().world;
 	}
 
 	@Override

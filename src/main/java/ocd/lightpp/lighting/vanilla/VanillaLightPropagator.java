@@ -88,7 +88,7 @@ public abstract class VanillaLightPropagator implements ILightPropagator
 
 	protected int calcSpread(final EnumFacing dir, final int sourceLight, final int targetOpac)
 	{
-		return sourceLight - Math.min(targetOpac, 1);
+		return sourceLight - Math.max(targetOpac, 1);
 	}
 
 	public static class Block extends VanillaLightPropagator
