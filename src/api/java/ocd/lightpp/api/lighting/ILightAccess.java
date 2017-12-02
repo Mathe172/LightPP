@@ -27,24 +27,28 @@ package ocd.lightpp.api.lighting;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.IBlockAccess;
 
 public interface ILightAccess
 {
-    World getWorld();
+	IBlockAccess getBlockAccess();
 
-    boolean isValid();
+	boolean isValid();
 
-    boolean isLoaded();
+	boolean isLoaded();
 
-    BlockPos getPos();
+	BlockPos getPos();
 
-    int getLight();
+	/**
+	 * Only call if isLoaded is true or isValid is false
+	 */
+	int getLight(EnumSkyBlock lightType);
 
-    IBlockState getBlockState();
+	IBlockState getBlockState();
 
-    default int getLightOpacity()
-    {
-        return this.getBlockState().getLightOpacity(this.getWorld(), this.getPos());
-    }
+	default int getLightOpacity()
+	{
+		return this.getBlockState().getLightOpacity(this.getBlockAccess(), this.getPos());
+	}
 }

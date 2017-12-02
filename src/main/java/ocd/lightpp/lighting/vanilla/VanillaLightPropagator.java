@@ -20,16 +20,16 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
-package ocd.lightpp.lighting;
+package ocd.lightpp.lighting.vanilla;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightPropagator;
+import ocd.lightpp.lighting.LightingEngine;
 
 public abstract class VanillaLightPropagator implements ILightPropagator
 {
@@ -100,14 +100,14 @@ public abstract class VanillaLightPropagator implements ILightPropagator
 		{
 			final IBlockState state = lightAccess.getBlockState();
 
-			this.sourceLight = state.getLightValue(lightAccess.getWorld(), lightAccess.getPos());
+			this.sourceLight = state.getLightValue(lightAccess.getBlockAccess(), lightAccess.getPos());
 
 			if (this.sourceLight >= LightingEngine.MAX_LIGHT - 1)
 				this.opacity = 1;
 			else
-				this.opacity = state.getLightOpacity(lightAccess.getWorld(), lightAccess.getPos());
+				this.opacity = state.getLightOpacity(lightAccess.getBlockAccess(), lightAccess.getPos());
 
-			this.maxLight = LightingEngine.MAX_LIGHT - Math.min(this.opacity, 1);
+			this.maxLight = LightingEngine.MAX_LIGHT - Math.max(this.opacity, 1);
 		}
 
 		@Override
@@ -123,7 +123,7 @@ public abstract class VanillaLightPropagator implements ILightPropagator
 		public void prepareCalc(final ILightAccess lightAccess)
 		{
 			this.opacity = lightAccess.getLightOpacity();
-			this.maxLight = LightingEngine.MAX_LIGHT - Math.min(this.opacity, 1);
+			this.maxLight = LightingEngine.MAX_LIGHT - Math.max(this.opacity, 1);
 		}
 
 		@Override

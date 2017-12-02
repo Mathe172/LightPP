@@ -28,11 +28,15 @@ package ocd.lightpp.api.lighting;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
+import ocd.lightpp.api.util.Sized;
 
 public interface ILightHandler extends ILightAccess
 {
 	LightUpdateQueue createQueue();
 
+	/**
+	 * The traversal order is unspecified, in particular it does not need to match the insertion order
+	 */
 	boolean next();
 
 	void cleanup();
@@ -55,7 +59,7 @@ public interface ILightHandler extends ILightAccess
 
 	void markForSpread(EnumFacing dir);
 
-	interface LightUpdateQueue
+	interface LightUpdateQueue extends Sized
 	{
 		void activate();
 
@@ -64,9 +68,5 @@ public interface ILightHandler extends ILightAccess
 		void accept(EnumFacing dir);
 
 		void accept(BlockPos pos, EnumSkyBlock lightType);
-
-		int size();
-
-		boolean isEmpty();
 	}
 }

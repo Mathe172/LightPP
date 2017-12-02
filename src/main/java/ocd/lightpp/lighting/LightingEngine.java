@@ -39,7 +39,7 @@ import ocd.lightpp.api.lighting.ILightPropagator;
 
 public class LightingEngine
 {
-	private static final EnumSkyBlock[] LIGHT_TYPE_VALUES = EnumSkyBlock.values();
+	public static final EnumSkyBlock[] LIGHT_TYPE_VALUES = EnumSkyBlock.values();
 
 	private static final int MAX_SCHEDULED_COUNT = 1 << 22;
 
@@ -74,10 +74,8 @@ public class LightingEngine
 
 		this.lightHandler = lightManager.createLightHandler();
 
-		final ILightPropagator.Factory lightPropagator = lightManager.createLightPropagator();
-
 		for (final EnumSkyBlock lightType : LIGHT_TYPE_VALUES)
-			this.lightPropagators[lightType.ordinal()] = lightPropagator.create(lightType);
+			this.lightPropagators[lightType.ordinal()] = lightManager.create(lightType);
 
 		for (int i = 0; i < LIGHT_TYPE_VALUES.length; ++i)
 			this.queuedLightUpdates[i] = this.lightHandler.createQueue();
@@ -143,7 +141,7 @@ public class LightingEngine
 				if (!this.lightHandler.isLoaded())
 					continue;
 
-				final int oldLight = this.lightHandler.getLight();
+				final int oldLight = this.lightHandler.getLight(lightType);
 				final int newLight = this.calcNewLight(oldLight);
 
 				if (oldLight < newLight)
@@ -182,7 +180,7 @@ public class LightingEngine
 
 		for (this.initialDarkenings.activate(); this.lightHandler.next(); )
 		{
-			final int oldLight = this.lightHandler.getLight();
+			final int oldLight = this.lightHandler.getLight(this.lightHandler.getLightType());
 
 			//Sets the light to 0 to only schedule once
 			if (oldLight != 0)
@@ -192,7 +190,7 @@ public class LightingEngine
 		//Sets the light to newLight to only schedule once. Clear leading bits of curData for later
 		for (int curLight = MAX_LIGHT; curLight > 0; ++curLight)
 			for (this.initialBrightenings[curLight].activate(); this.lightHandler.next(); )
-				if (curLight > this.lightHandler.getLight())
+				if (curLight > this.lightHandler.getLight(this.lightHandler.getLightType()))
 					this.enqueueBrightening(curLight);
 
 		this.profiler.endSection();
@@ -207,7 +205,7 @@ public class LightingEngine
 				if (!this.lightHandler.isLoaded())
 					return;
 
-				final int oldLight = this.lightHandler.getLight();
+				final int oldLight = this.lightHandler.getLight(this.lightHandler.getLightType());
 
 				if (oldLight >= curLight) // Don't darken if we got brighter due to some other change
 					continue;
@@ -245,7 +243,7 @@ public class LightingEngine
 						{
 							if (neighborLightAccess.isLoaded())
 							{
-								final int oldNeighborLight = neighborLightAccess.getLight();
+								final int oldNeighborLight = neighborLightAccess.getLight(lightType);
 
 								if (this.maxNeighborSpread[i] >= oldNeighborLight)
 								{
@@ -272,7 +270,7 @@ public class LightingEngine
 
 					if (neighborLightAccess.isLoaded())
 					{
-						final int neighborLight = lightPropagator.calcLight(dir, this.lightHandler, neighborLightAccess.getLight());
+						final int neighborLight = lightPropagator.calcLight(dir, this.lightHandler, neighborLightAccess.getLight(lightType));
 						newLight = Math.max(newLight, neighborLight);
 					}
 					else
@@ -328,7 +326,7 @@ public class LightingEngine
 
 						if (neighborLightAccess.isValid() && this.maxNeighborSpread[i] > 0)
 						{
-							final int oldNeighborLight = neighborLightAccess.getLight();
+							final int oldNeighborLight = neighborLightAccess.getLight(lightType);
 
 							if (this.neighborSpread[i] >= oldNeighborLight)
 								this.enqueueDarkening(dir, oldNeighborLight); // Schedule neighbor for darkening if we possibly light it
@@ -358,7 +356,7 @@ public class LightingEngine
 						if (!neighborLightAccess.isLoaded())
 							continue;
 
-						final int oldNeighborLight = neighborLightAccess.getLight();
+						final int oldNeighborLight = neighborLightAccess.getLight(lightType);
 
 						if (this.maxNeighborSpread[i] <= oldNeighborLight)
 							continue;
@@ -376,8 +374,10 @@ public class LightingEngine
 				if (!this.lightHandler.isLoaded())
 					return;
 
+				final EnumSkyBlock lightType = this.lightHandler.getLightType();
+
 				// Only process this if nothing else has happened at this position since scheduling
-				if (this.lightHandler.getLight() != curLight)
+				if (this.lightHandler.getLight(lightType) != curLight)
 					continue;
 
 				this.lightHandler.notifyLightSet();
@@ -385,7 +385,6 @@ public class LightingEngine
 				if (curLight == 0)
 					continue;
 
-				final EnumSkyBlock lightType = this.lightHandler.getLightType();
 				final ILightPropagator lightPropagator = this.lightPropagators[lightType.ordinal()];
 
 				lightPropagator.prepareSpread(curLight);
@@ -411,7 +410,7 @@ public class LightingEngine
 
 					if (neighborLightAccess.isLoaded())
 					{
-						final int oldNeighborLight = neighborLightAccess.getLight();
+						final int oldNeighborLight = neighborLightAccess.getLight(lightType);
 
 						if (maxNeighborSpread <= oldNeighborLight)
 							continue;
@@ -466,7 +465,7 @@ public class LightingEngine
 
 			if (neighborLightAccess.isLoaded())
 			{
-				final int neighborLight = lightPropagator.calcLight(dir, this.lightHandler, neighborLightAccess.getLight());
+				final int neighborLight = lightPropagator.calcLight(dir, this.lightHandler, neighborLightAccess.getLight(lightType));
 				newLight = Math.max(newLight, neighborLight);
 
 				if (maxLight <= newLight)

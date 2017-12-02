@@ -27,23 +27,26 @@ package ocd.lightpp.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import ocd.lightpp.api.lighting.ILightHandler;
 import ocd.lightpp.api.lighting.ILightManager;
-import ocd.lightpp.api.lighting.ILightPropagator.Factory;
+import ocd.lightpp.api.lighting.ILightPropagator;
+import ocd.lightpp.lighting.vanilla.VanillaLightHandler;
+import ocd.lightpp.lighting.vanilla.VanillaLightPropagator;
 
 @Mixin(World.class)
-public abstract class VanillaLightManager implements ILightManager
+public abstract class VanillaLightManager implements ILightManager, ILightPropagator.Factory
 {
 	@Override
 	public ILightHandler createLightHandler()
 	{
-		return null;
+		return new VanillaLightHandler((World) (Object) this);
 	}
 
 	@Override
-	public Factory createLightPropagator()
+	public ILightPropagator create(final EnumSkyBlock lightType)
 	{
-		return null;
+		return lightType == EnumSkyBlock.SKY ? new VanillaLightPropagator.Sky() : new VanillaLightPropagator.Block();
 	}
 }

@@ -25,10 +25,10 @@
 
 package ocd.lightpp.mixin;
 
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.util.math.BlockPos;
@@ -40,13 +40,22 @@ import ocd.lightpp.lighting.LightingEngine;
 @Mixin(World.class)
 public abstract class LightCore implements ILightManager
 {
-	final LightingEngine lightingEngine = new LightingEngine((World) (Object) this);
+	private LightingEngine lightingEngine;
+
+	@Inject(
+		method = "<init>*",
+		at = @At("RETURN")
+	)
+	private void init(final CallbackInfo ci)
+	{
+		this.lightingEngine = new LightingEngine((World) (Object) this);
+	}
 
 	@Inject(
 		method = "checkLightFor(Lnet/minecraft/world/EnumSkyBlock;Lnet/minecraft/util/math/BlockPos;)Z",
 		at = @At("HEAD"),
 		cancellable = true)
-	public void calcLight(final EnumSkyBlock lightType, final BlockPos pos, final CallbackInfoReturnable<Boolean> ci)
+	private void calcLight(final EnumSkyBlock lightType, final BlockPos pos, final CallbackInfoReturnable<Boolean> ci)
 	{
 		this.lightingEngine.scheduleLightUpdate(lightType, pos);
 		this.lightingEngine.procLightUpdates();

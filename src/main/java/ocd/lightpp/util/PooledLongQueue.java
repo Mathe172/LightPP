@@ -30,9 +30,9 @@ package ocd.lightpp.util;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import ocd.lightpp.util.PooledLongQueue.SegmentPool.PooledLongQueueSegment;
+import ocd.lightpp.api.util.Sized;
 
-public class PooledLongQueue
+public class PooledLongQueue implements Sized
 {
 	private static final int CACHED_QUEUE_SEGMENTS_COUNT = 1 << 12;
 	private static final int QUEUE_SEGMENT_SIZE = 1 << 10;
@@ -41,7 +41,7 @@ public class PooledLongQueue
 	{
 		private final Deque<PooledLongQueueSegment> segments = new ArrayDeque<>();
 
-		public class PooledLongQueueSegment
+		private class PooledLongQueueSegment
 		{
 			private final long[] longArray = new long[QUEUE_SEGMENT_SIZE];
 			private int index = 0;
@@ -56,7 +56,7 @@ public class PooledLongQueue
 					SegmentPool.this.segments.push(this);
 			}
 
-			public PooledLongQueueSegment add(final long val)
+			private PooledLongQueueSegment add(final long val)
 			{
 				PooledLongQueueSegment ret = this;
 
@@ -68,7 +68,12 @@ public class PooledLongQueue
 			}
 		}
 
-		public PooledLongQueueSegment getLongQueueSegment()
+		public PooledLongQueue newQueue()
+		{
+			return new PooledLongQueue(this);
+		}
+
+		private PooledLongQueueSegment getLongQueueSegment()
 		{
 			if (this.segments.isEmpty())
 				return new PooledLongQueueSegment();
@@ -79,21 +84,23 @@ public class PooledLongQueue
 
 	private final SegmentPool pool;
 
-	private PooledLongQueue(final SegmentPool pool)
+	public PooledLongQueue(final SegmentPool pool)
 	{
 		this.pool = pool;
 	}
 
-	private PooledLongQueueSegment cur, last;
+	private SegmentPool.PooledLongQueueSegment cur, last;
 	private int size = 0;
 
 	private int index = 0;
 
+	@Override
 	public int size()
 	{
 		return this.size;
 	}
 
+	@Override
 	public boolean isEmpty()
 	{
 		return this.cur == null;
@@ -116,7 +123,7 @@ public class PooledLongQueue
 		if (this.index == this.cur.index)
 		{
 			this.index = 0;
-			final PooledLongQueueSegment next = this.cur.next;
+			final SegmentPool.PooledLongQueueSegment next = this.cur.next;
 			this.cur.release();
 			this.cur = next;
 		}
