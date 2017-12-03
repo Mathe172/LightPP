@@ -33,7 +33,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import ocd.lightpp.api.lighting.ILightAccess;
@@ -129,6 +128,13 @@ public class VanillaLightHandler extends VanillaLightAccess implements ILightHan
 		return this.curLightType;
 	}
 
+	@Nullable
+	@Override
+	public EnumFacing getDir()
+	{
+		return null;
+	}
+
 	@Override
 	public ILightAccess getNeighborLightAccess(final EnumFacing dir)
 	{
@@ -166,19 +172,19 @@ public class VanillaLightHandler extends VanillaLightAccess implements ILightHan
 	}
 
 	@Override
-	public void trackDarkening(final EnumFacing dir)
+	public void trackDarkening()
 	{
 
 	}
 
 	@Override
-	public void trackBrightening(final EnumFacing dir)
+	public void trackBrightening()
 	{
 
 	}
 
 	@Override
-	public void markForRecheck(final EnumFacing dir)
+	public void markForRecheck()
 	{
 
 	}
@@ -221,7 +227,7 @@ public class VanillaLightHandler extends VanillaLightAccess implements ILightHan
 		}
 
 		@Override
-		public void accept(final BlockPos pos, final EnumSkyBlock lightType)
+		public void accept(final EnumSkyBlock lightType, final BlockPos pos, @Nullable final EnumFacing dir)
 		{
 			this.add(posToLong(pos) | ((long) lightType.ordinal() << sL));
 		}
@@ -307,11 +313,11 @@ abstract class VanillaLightAccess implements ILightAccess
 		if (this.getLightHandler().curChunkID == this.curChunkID)
 			return this.curChunk = this.getLightHandler().curChunk;
 
-		return this.curChunk = this.getLightHandler().world.getChunkProvider().getLoadedChunk(this.curPos.getX() >> 4, this.curPos.getZ() >> 4);
+		return this.curChunk = this.getWorld().getChunkProvider().getLoadedChunk(this.curPos.getX() >> 4, this.curPos.getZ() >> 4);
 	}
 
 	@Override
-	public IBlockAccess getBlockAccess()
+	public World getWorld()
 	{
 		return this.getLightHandler().world;
 	}

@@ -51,19 +51,19 @@ public class LightingEngine
 	private final ILightHandler lightHandler;
 	private final ILightPropagator[] lightPropagators = new ILightPropagator[LIGHT_TYPE_VALUES.length];
 
-	private final LightUpdateQueue[] queuedLightUpdates = new LightUpdateQueue[LIGHT_TYPE_VALUES.length];
+	private final LightUpdateQueue queuedLightUpdates;
+	private final LightUpdateQueue queuedSpreadings;
 
-	private final LightUpdateQueue[] queuedDarkenings = new LightUpdateQueue[MAX_LIGHT + 1];
-	private final LightUpdateQueue[] queuedBrightenings = new LightUpdateQueue[MAX_LIGHT + 1];
+	private final LightUpdateQueue[] queuedDarkenings = new LightUpdateQueue[MAX_LIGHT];
+	private final LightUpdateQueue[] queuedBrightenings = new LightUpdateQueue[MAX_LIGHT];
 
 	private final LightUpdateQueue initialDarkenings;
-	private final LightUpdateQueue[] initialBrightenings = new LightUpdateQueue[MAX_LIGHT + 1];
+	private final LightUpdateQueue[] initialBrightenings = new LightUpdateQueue[MAX_LIGHT];
 
 	private boolean hasUpdates;
 
 	private final int[] neighborSpread = new int[6];
-	private final int[] maxNeighborSpread = new int[6];
-	private final int[] maxNeighborLight = new int[6];
+	private final int[] oldNeighborLight = new int[6];
 
 	public LightingEngine(final World world)
 	{
@@ -77,8 +77,8 @@ public class LightingEngine
 		for (final EnumSkyBlock lightType : LIGHT_TYPE_VALUES)
 			this.lightPropagators[lightType.ordinal()] = lightManager.create(lightType);
 
-		for (int i = 0; i < LIGHT_TYPE_VALUES.length; ++i)
-			this.queuedLightUpdates[i] = this.lightHandler.createQueue();
+		this.queuedLightUpdates = this.lightHandler.createQueue();
+		this.queuedSpreadings = this.lightHandler.createQueue();
 
 		for (int i = 0; i < this.queuedDarkenings.length; ++i)
 			this.queuedDarkenings[i] = this.lightHandler.createQueue();
@@ -97,35 +97,19 @@ public class LightingEngine
 	 */
 	public void scheduleLightUpdate(final EnumSkyBlock lightType, final BlockPos pos)
 	{
-		final LightUpdateQueue queue = this.queuedLightUpdates[lightType.ordinal()];
-
-		queue.accept(pos, lightType);
+		this.queuedLightUpdates.accept(lightType, pos, null);
 
 		// Make sure there are not too many queued light updates
-		if (queue.size() >= MAX_SCHEDULED_COUNT)
-			this.procLightUpdates(lightType);
+		if (this.queuedLightUpdates.size() >= MAX_SCHEDULED_COUNT)
+			this.procLightUpdates();
 	}
 
-	/**
-	 * Calls {@link #procLightUpdates(EnumSkyBlock)} for both light types
-	 */
 	public void procLightUpdates()
 	{
-		this.procLightUpdates(EnumSkyBlock.SKY);
-		this.procLightUpdates(EnumSkyBlock.BLOCK);
-	}
-
-	/**
-	 * Processes light updates of the given light type
-	 */
-	public void procLightUpdates(final EnumSkyBlock lightType)
-	{
-		final LightUpdateQueue queue = this.queuedLightUpdates[lightType.ordinal()];
-
 		// Renderer accesses world unsynchronized, don't modify anything in that case
 		boolean ensuredNotRenderingThread = false;
 
-		if (!queue.isEmpty())
+		if (!this.queuedLightUpdates.isEmpty())
 		{
 			if (!IThreadGuard.isNotRenderingThread(this.world))
 				return;
@@ -136,10 +120,12 @@ public class LightingEngine
 			this.profiler.startSection("checking");
 
 			// Process the queued updates and enqueue them for further processing
-			for (queue.activate(); this.lightHandler.next(); )
+			for (this.queuedLightUpdates.activate(); this.lightHandler.next(); )
 			{
 				if (!this.lightHandler.isLoaded())
 					continue;
+
+				final EnumSkyBlock lightType = this.lightHandler.getLightType();
 
 				final int oldLight = this.lightHandler.getLight(lightType);
 				final int newLight = this.calcNewLight(oldLight);
@@ -147,7 +133,7 @@ public class LightingEngine
 				if (oldLight < newLight)
 				{
 					// Don't enqueue directly for brightening in order to avoid duplicate scheduling
-					this.initialBrightenings[newLight].accept();
+					this.initialBrightenings[newLight - 1].accept();
 					this.hasUpdates = true;
 				}
 				else if (oldLight > newLight)
@@ -183,28 +169,25 @@ public class LightingEngine
 			final int oldLight = this.lightHandler.getLight(this.lightHandler.getLightType());
 
 			//Sets the light to 0 to only schedule once
-			if (oldLight != 0)
+			if (oldLight > 0)
 				this.enqueueDarkening(oldLight);
 		}
 
 		//Sets the light to newLight to only schedule once. Clear leading bits of curData for later
 		for (int curLight = MAX_LIGHT; curLight > 0; --curLight)
-			for (this.initialBrightenings[curLight].activate(); this.lightHandler.next(); )
+			for (this.initialBrightenings[curLight - 1].activate(); this.lightHandler.next(); )
 				if (curLight > this.lightHandler.getLight(this.lightHandler.getLightType()))
 					this.enqueueBrightening(curLight);
 
 		this.profiler.endSection();
 
 		// Iterate through enqueued updates (brightening and darkening in parallel) from brightest to darkest so that we only need to iterate once
-		for (int curLight = MAX_LIGHT; curLight >= 0; --curLight)
+		for (int curLight = MAX_LIGHT; curLight > 0; --curLight)
 		{
 			this.profiler.startSection("darkening");
 
-			for (this.queuedDarkenings[curLight].activate(); this.lightHandler.next(); )
+			for (this.queuedDarkenings[curLight - 1].activate(); this.lightHandler.next(); )
 			{
-				if (!this.lightHandler.isLoaded())
-					return;
-
 				final int oldLight = this.lightHandler.getLight(this.lightHandler.getLightType());
 
 				if (oldLight >= curLight) // Don't darken if we got brighter due to some other change
@@ -225,9 +208,11 @@ public class LightingEngine
 
 				final EnumFacing[] lookupOrder = lightPropagator.getLookupOrder(this.lightHandler);
 
-				boolean neighborUnloaded = false;
 				int savedLight = 0;
 				boolean needsRecheck = false;
+
+				final int[] neighborSpread = this.neighborSpread;
+				final int[] oldNeighborLight = this.oldNeighborLight;
 
 				for (int i = 0; i < 6; ++i)
 				{
@@ -235,25 +220,28 @@ public class LightingEngine
 
 					final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
 
+					final boolean isNeighborLoaded = neighborLightAccess.isLoaded();
+
+					neighborSpread[i] = 0;
+					oldNeighborLight[i] = 0;
+
 					if (maxSpread > 0 && neighborLightAccess.isValid())
 					{
-						this.maxNeighborSpread[i] = lightPropagator.getMaxSpread(dir, curLight);
+						final int maxNeighborSpread = lightPropagator.getMaxSpread(dir, curLight);
 
-						if (this.maxNeighborSpread[i] > 0)
+						if (maxNeighborSpread > 0)
 						{
-							if (neighborLightAccess.isLoaded())
+							if (isNeighborLoaded)
 							{
-								final int oldNeighborLight = neighborLightAccess.getLight(lightType);
+								oldNeighborLight[i] = neighborLightAccess.getLight(lightType);
 
-								if (this.maxNeighborSpread[i] >= oldNeighborLight)
+								if (maxNeighborSpread >= oldNeighborLight[i])
 								{
-									this.neighborSpread[i] = lightPropagator.calcSpread(dir, curLight, neighborLightAccess);
+									neighborSpread[i] = lightPropagator.calcSpread(dir, curLight, neighborLightAccess);
 
-									if (this.neighborSpread[i] >= oldNeighborLight)
+									if (neighborSpread[i] >= oldNeighborLight[i])
 										continue;
 								}
-								else
-									this.neighborSpread[i] = this.maxNeighborSpread[i];
 							}
 							else
 								needsRecheck = true;
@@ -263,50 +251,26 @@ public class LightingEngine
 					if (maxLight <= newLight)
 						continue;
 
-					this.maxNeighborLight[i] = lightPropagator.getMaxNeighborLight(dir, this.lightHandler);
+					final int maxNeighborLight = lightPropagator.getMaxNeighborLight(dir, this.lightHandler);
 
-					if (this.maxNeighborLight[i] <= newLight)
+					if (maxNeighborLight <= newLight)
 						continue;
 
-					if (neighborLightAccess.isLoaded())
+					if (isNeighborLoaded)
 					{
 						final int neighborLight = lightPropagator.calcLight(dir, this.lightHandler, neighborLightAccess.getLight(lightType));
 						newLight = Math.max(newLight, neighborLight);
 					}
 					else
-					{
-						neighborUnloaded = true;
-						savedLight = Math.max(savedLight, this.maxNeighborLight[i]);
-					}
+						savedLight = Math.max(savedLight, maxNeighborLight);
 				}
 
-				if (neighborUnloaded && maxLight > newLight && newLight < curLight)
+				savedLight = Math.min(curLight, savedLight);
+
+				if (savedLight > newLight)
 				{
-					for (int i = 0; i < 6; ++i)
-					{
-						final EnumFacing dir = lookupOrder[i];
-						final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
-
-						if (this.maxNeighborLight[i] > newLight && !neighborLightAccess.isLoaded())
-							this.lightHandler.markForRecheck(dir);
-					}
-
-					newLight = Math.max(newLight, Math.min(oldLight, savedLight));
-				}
-
-				if (needsRecheck && newLight < curLight)
-				{
-					for (int i = 0; i < 6; ++i)
-					{
-						final EnumFacing dir = lookupOrder[i];
-
-						final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
-
-						if (this.maxNeighborSpread[i] > 0 && neighborLightAccess.isValid() && !neighborLightAccess.isLoaded())
-							this.lightHandler.markForRecheck(dir);
-					}
-
-					newLight = curLight;
+					this.lightHandler.markForRecheck();
+					newLight = needsRecheck ? curLight : savedLight;
 				}
 
 				// Only darken neighbors if we indeed became darker
@@ -314,23 +278,18 @@ public class LightingEngine
 				{
 					if (oldLight < newLight)
 						this.enqueueBrightening(newLight);
+					else if (newLight == 0)
+						this.lightHandler.notifyLightSet();
+
+					this.lightHandler.trackDarkening();
 
 					if (maxSpread == 0)
 						continue;
 
 					for (int i = 0; i < 6; ++i)
 					{
-						final EnumFacing dir = lookupOrder[i];
-
-						final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
-
-						if (this.maxNeighborSpread[i] > 0 && neighborLightAccess.isValid() && neighborLightAccess.isLoaded())
-						{
-							final int oldNeighborLight = neighborLightAccess.getLight(lightType);
-
-							if (this.neighborSpread[i] >= oldNeighborLight)
-								this.enqueueDarkening(dir, oldNeighborLight); // Schedule neighbor for darkening if we possibly light it
-						}
+						if (oldNeighborLight[i] > 0 && neighborSpread[i] >= oldNeighborLight[i])
+							this.enqueueDarkening(lookupOrder[i], oldNeighborLight[i]); // Schedule neighbor for darkening if we possibly light it
 					}
 				}
 				else // We didn't become darker, so we need to re-set our initial light value (was set to 0) and notify neighbors
@@ -343,37 +302,16 @@ public class LightingEngine
 
 					for (int i = 0; i < 6; ++i)
 					{
-						final EnumFacing dir = lookupOrder[i];
-
-						final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
-
-						if (!neighborLightAccess.isValid())
-							continue;
-
-						if (this.maxNeighborSpread[i] == 0)
-							continue;
-
-						if (!neighborLightAccess.isLoaded())
-							continue;
-
-						final int oldNeighborLight = neighborLightAccess.getLight(lightType);
-
-						if (this.maxNeighborSpread[i] <= oldNeighborLight)
-							continue;
-
-						if (this.neighborSpread[i] > oldNeighborLight)
-							this.enqueueBrightening(dir, this.neighborSpread[i]);
+						if (neighborSpread[i] > oldNeighborLight[i])
+							this.enqueueBrightening(lookupOrder[i], neighborSpread[i]);
 					}
 				}
 			}
 
 			this.profiler.endStartSection("brightening");
 
-			for (this.queuedBrightenings[curLight].activate(); this.lightHandler.next(); )
+			for (this.queuedBrightenings[curLight - 1].activate(); this.lightHandler.next(); )
 			{
-				if (!this.lightHandler.isLoaded())
-					return;
-
 				final EnumSkyBlock lightType = this.lightHandler.getLightType();
 
 				// Only process this if nothing else has happened at this position since scheduling
@@ -381,9 +319,7 @@ public class LightingEngine
 					continue;
 
 				this.lightHandler.notifyLightSet();
-
-				if (curLight == 0)
-					continue;
+				this.lightHandler.trackBrightening();
 
 				final ILightPropagator lightPropagator = this.lightPropagators[lightType.ordinal()];
 
@@ -394,10 +330,8 @@ public class LightingEngine
 				if (maxSpread == 0)
 					continue;
 
-				for (int i = 0; i < 6; ++i)
+				for (final EnumFacing dir : EnumFacing.VALUES)
 				{
-					final EnumFacing dir = EnumFacing.VALUES[i];
-
 					final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
 
 					if (!neighborLightAccess.isValid())
@@ -449,16 +383,13 @@ public class LightingEngine
 
 		final EnumFacing[] lookupOrder = lightPropagator.getLookupOrder(this.lightHandler);
 
-		boolean neighborUnloaded = false;
 		int savedLight = 0;
 
-		for (int i = 0; i < 6; ++i)
+		for (final EnumFacing dir : lookupOrder)
 		{
-			final EnumFacing dir = lookupOrder[i];
+			final int maxNeighborLight = lightPropagator.getMaxNeighborLight(dir, this.lightHandler);
 
-			this.maxNeighborLight[i] = lightPropagator.getMaxNeighborLight(dir, this.lightHandler);
-
-			if (this.maxNeighborLight[i] <= newLight)
+			if (maxNeighborLight <= newLight)
 				continue;
 
 			final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
@@ -472,23 +403,12 @@ public class LightingEngine
 					break;
 			}
 			else
-			{
-				neighborUnloaded = true;
-				savedLight = Math.max(savedLight, this.maxNeighborLight[i]);
-			}
+				savedLight = Math.max(savedLight, maxNeighborLight);
 		}
 
-		if (neighborUnloaded && maxLight > newLight)
+		if (savedLight > newLight)
 		{
-			for (int i = 0; i < 6; ++i)
-			{
-				final EnumFacing dir = lookupOrder[i];
-				final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
-
-				if (this.maxNeighborLight[i] > newLight && !neighborLightAccess.isLoaded())
-					this.lightHandler.markForRecheck(dir);
-			}
-
+			this.lightHandler.markForRecheck();
 			newLight = Math.max(newLight, Math.min(oldLight, savedLight));
 		}
 
@@ -497,27 +417,25 @@ public class LightingEngine
 
 	private void enqueueDarkening(final int oldLight)
 	{
-		this.queuedDarkenings[oldLight].accept();
+		this.queuedDarkenings[oldLight - 1].accept();
 		this.lightHandler.setLight(0);
 	}
 
 	private void enqueueDarkening(final EnumFacing dir, final int oldLight)
 	{
-		this.queuedDarkenings[oldLight].accept(dir);
-		this.lightHandler.trackDarkening(dir);
+		this.queuedDarkenings[oldLight - 1].accept(dir);
 		this.lightHandler.setLight(dir, 0);
 	}
 
 	private void enqueueBrightening(final int newLight)
 	{
-		this.queuedBrightenings[newLight].accept();
+		this.queuedBrightenings[newLight - 1].accept();
 		this.lightHandler.setLight(newLight);
 	}
 
 	private void enqueueBrightening(final EnumFacing dir, final int newLight)
 	{
-		this.queuedBrightenings[newLight].accept(dir);
-		this.lightHandler.trackBrightening(dir);
+		this.queuedBrightenings[newLight - 1].accept(dir);
 		this.lightHandler.setLight(dir, newLight);
 	}
 }

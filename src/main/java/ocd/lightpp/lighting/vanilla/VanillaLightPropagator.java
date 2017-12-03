@@ -100,12 +100,12 @@ public abstract class VanillaLightPropagator implements ILightPropagator
 		{
 			final IBlockState state = lightAccess.getBlockState();
 
-			this.sourceLight = state.getLightValue(lightAccess.getBlockAccess(), lightAccess.getPos());
+			this.sourceLight = state.getLightValue(lightAccess.getWorld(), lightAccess.getPos());
 
 			if (this.sourceLight >= LightingEngine.MAX_LIGHT - 1)
 				this.opacity = 1;
 			else
-				this.opacity = state.getLightOpacity(lightAccess.getBlockAccess(), lightAccess.getPos());
+				this.opacity = state.getLightOpacity(lightAccess.getWorld(), lightAccess.getPos());
 
 			this.maxLight = LightingEngine.MAX_LIGHT - Math.max(this.opacity, 1);
 		}

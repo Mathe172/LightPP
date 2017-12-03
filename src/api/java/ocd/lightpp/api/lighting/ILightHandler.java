@@ -25,6 +25,8 @@
 
 package ocd.lightpp.api.lighting;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
@@ -43,6 +45,9 @@ public interface ILightHandler extends ILightAccess
 
 	EnumSkyBlock getLightType();
 
+	@Nullable
+	EnumFacing getDir();
+
 	ILightAccess getNeighborLightAccess(EnumFacing dir);
 
 	void setLight(int val);
@@ -51,11 +56,11 @@ public interface ILightHandler extends ILightAccess
 
 	void notifyLightSet();
 
-	void trackDarkening(EnumFacing dir);
+	void trackDarkening();
 
-	void trackBrightening(EnumFacing dir);
+	void trackBrightening();
 
-	void markForRecheck(EnumFacing dir);
+	void markForRecheck();
 
 	void markForSpread(EnumFacing dir);
 
@@ -67,6 +72,6 @@ public interface ILightHandler extends ILightAccess
 
 		void accept(EnumFacing dir);
 
-		void accept(BlockPos pos, EnumSkyBlock lightType);
+		void accept(EnumSkyBlock lightType, BlockPos pos, @Nullable EnumFacing dir);
 	}
 }

@@ -32,7 +32,7 @@ import net.minecraft.world.IBlockAccess;
 
 public interface ILightAccess
 {
-	IBlockAccess getBlockAccess();
+	IBlockAccess getWorld();
 
 	boolean isValid();
 
@@ -49,6 +49,6 @@ public interface ILightAccess
 
 	default int getLightOpacity()
 	{
-		return this.getBlockState().getLightOpacity(this.getBlockAccess(), this.getPos());
+		return this.getBlockState().getLightOpacity(this.getWorld(), this.getPos());
 	}
 }
