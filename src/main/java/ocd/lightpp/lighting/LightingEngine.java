@@ -214,6 +214,8 @@ public class LightingEngine
 				final int[] neighborSpread = this.neighborSpread;
 				final int[] oldNeighborLight = this.oldNeighborLight;
 
+				final EnumFacing sourceDir = this.lightHandler.getDir();
+
 				for (int i = 0; i < 6; ++i)
 				{
 					final EnumFacing dir = lookupOrder[i];
@@ -239,7 +241,7 @@ public class LightingEngine
 								{
 									neighborSpread[i] = lightPropagator.calcSpread(dir, curLight, neighborLightAccess);
 
-									if (neighborSpread[i] >= oldNeighborLight[i])
+									if (neighborSpread[i] >= oldNeighborLight[i] && dir != sourceDir)
 										continue;
 								}
 							}
@@ -288,7 +290,7 @@ public class LightingEngine
 
 					for (int i = 0; i < 6; ++i)
 					{
-						if (oldNeighborLight[i] > 0 && neighborSpread[i] >= oldNeighborLight[i])
+						if (oldNeighborLight[i] > 0 && neighborSpread[i] >= oldNeighborLight[i] && lookupOrder[i] != sourceDir)
 							this.enqueueDarkening(lookupOrder[i], oldNeighborLight[i]); // Schedule neighbor for darkening if we possibly light it
 					}
 				}
@@ -330,8 +332,13 @@ public class LightingEngine
 				if (maxSpread == 0)
 					continue;
 
+				final EnumFacing sourceDir = this.lightHandler.getDir();
+
 				for (final EnumFacing dir : EnumFacing.VALUES)
 				{
+					if (dir == sourceDir)
+						continue;
+
 					final ILightAccess neighborLightAccess = this.lightHandler.getNeighborLightAccess(dir);
 
 					if (!neighborLightAccess.isValid())
