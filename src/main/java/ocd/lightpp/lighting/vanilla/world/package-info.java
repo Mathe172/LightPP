@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2017 OverengineeredCodingDuo
+ * Copyright (c) 2017-2018 OverengineeredCodingDuo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,39 +22,10 @@
  * SOFTWARE.
  */
 
-package ocd.lightpp;
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+package ocd.lightpp.lighting.vanilla.world;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.SidedProxy;
+import javax.annotation.ParametersAreNonnullByDefault;
 
-public abstract class IThreadGuard
-{
-	public static boolean isNotRenderingThread(final World world)
-	{
-		return threadGuard.isNotRenderingThread_(world);
-	}
-
-	public abstract boolean isNotRenderingThread_(World world);
-
-	@SidedProxy
-	public static IThreadGuard threadGuard;
-
-	public static class ClientProxy extends IThreadGuard
-	{
-		@Override
-		public boolean isNotRenderingThread_(final World world)
-		{
-			return !world.isRemote || Minecraft.getMinecraft().isCallingFromMinecraftThread();
-		}
-	}
-
-	public static class ServerProxy extends IThreadGuard
-	{
-		@Override
-		public boolean isNotRenderingThread_(final World world)
-		{
-			return true;
-		}
-	}
-}
+import mcp.MethodsReturnNonnullByDefault;

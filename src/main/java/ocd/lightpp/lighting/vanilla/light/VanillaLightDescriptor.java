@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2017 OverengineeredCodingDuo
+ * Copyright (c) 2017-2018 OverengineeredCodingDuo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,36 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
-package ocd.lightpp.api.lighting;
+package ocd.lightpp.lighting.vanilla.light;
 
-import ocd.lightpp.api.util.IThreadGuard;
+import net.minecraft.world.EnumSkyBlock;
+import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 
-public interface ILightManager extends ILightHandler.Factory, ILightPropagator.Factory
+public class VanillaLightDescriptor implements IVanillaLightDescriptor
 {
-	IThreadGuard getThreadGuard();
+	private EnumSkyBlock skyBlock;
+
+	public VanillaLightDescriptor()
+	{
+		this(EnumSkyBlock.BLOCK);
+	}
+
+	public VanillaLightDescriptor(final EnumSkyBlock skyBlock)
+	{
+
+		this.skyBlock = skyBlock;
+	}
+
+	@Override
+	public EnumSkyBlock getSkyBlock()
+	{
+		return this.skyBlock;
+	}
+
+	public void setSkyBlock(final EnumSkyBlock skyBlock)
+	{
+		this.skyBlock = skyBlock;
+	}
 }

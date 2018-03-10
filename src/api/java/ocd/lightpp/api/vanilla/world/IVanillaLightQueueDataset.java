@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2017 OverengineeredCodingDuo
+ * Copyright (c) 2017-2018 OverengineeredCodingDuo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,23 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
-package ocd.lightpp.api.lighting;
+package ocd.lightpp.api.vanilla.world;
 
-import ocd.lightpp.api.util.IThreadGuard;
+import ocd.lightpp.api.util.IEmpty;
 
-public interface ILightManager extends ILightHandler.Factory, ILightPropagator.Factory
+public interface IVanillaLightQueueDataset<D, Q extends IEmpty>
 {
-	IThreadGuard getThreadGuard();
+	Q get(D desc);
+
+	D getDesc();
+
+	Q getQueue();
+
+	/**
+	 * Discards the current queue iff it is {@link IEmpty#isEmpty() empty}
+	 * Returns one of the queues that have been {@link #get(D) requested} since they were last discarded
+	 */
+	boolean next();
 }

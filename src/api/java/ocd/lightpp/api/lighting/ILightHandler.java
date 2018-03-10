@@ -29,49 +29,94 @@ import javax.annotation.Nullable;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.EnumSkyBlock;
-import ocd.lightpp.api.util.Sized;
 
-public interface ILightHandler extends ILightAccess
+public interface ILightHandler<D, LI, WI, V>
 {
-	LightUpdateQueue createQueue();
+	ILightUpdateQueue<D, LI, WI, V> createUpdateQueue();
 
-	/**
-	 * The traversal order is unspecified, in particular it does not need to match the insertion order
-	 */
-	boolean next();
+	ILightCheckQueue<D, LI, WI, V> createCheckQueue();
+
+	ILightSpreadQueue<D, LI, WI, V> createSpreadQueue();
+
+	ILightInitQueue<D, LI, WI, V> createInitQueue();
 
 	void cleanup();
 
-	EnumSkyBlock getLightType();
-
-	@Nullable
-	EnumFacing getDir();
-
-	ILightAccess getNeighborLightAccess(EnumFacing dir);
-
-	void setLight(int val);
-
-	void setLight(EnumFacing dir, int val);
-
-	void notifyLightSet();
-
-	void trackDarkening();
-
-	void trackBrightening();
-
-	void markForRecheck();
-
-	void markForSpread(EnumFacing dir);
-
-	interface LightUpdateQueue extends Sized
+	interface ILightUpdateQueue<D, LI, WI, V>
 	{
-		void activate();
+		ILightUpdateQueueIterator<D, LI, WI, V> activate();
 
-		void accept();
+		void enqueueDarkening(D desc, int oldLight);
 
-		void accept(EnumFacing dir);
+		void enqueueDarkening(D desc, EnumFacing dir, int oldLight);
 
-		void accept(EnumSkyBlock lightType, BlockPos pos, @Nullable EnumFacing dir);
+		void enqueueBrightening(D desc, int newLight);
+
+		void enqueueBrightening(D desc, EnumFacing dir, int newLight);
+	}
+
+	interface ILightCheckQueue<D, LI, WI, V>
+	{
+		ILightCheckQueueIterator<D, LI, WI, V> activate();
+
+		boolean enqueueCheck(@Nullable D desc, BlockPos pos, @Nullable EnumFacing dir);
+	}
+
+	interface ILightSpreadQueue<D, LI, WI, V>
+	{
+		ILightSpreadQueueIterator<D, LI, WI, V> activate();
+
+		boolean enqueueSpread(D desc, BlockPos pos, EnumFacing dir);
+	}
+
+	interface ILightInitQueue<D, LI, WI, V>
+	{
+		ILightQueueIterator<D, LI, WI, V> activate();
+
+		boolean enqueueInit(BlockPos pos);
+	}
+
+	interface ILightQueueIterator<D, LI, WI, V>
+	{
+		/**
+		 * The traversal order is unspecified, in particular it does not need to match the insertion order
+		 */
+		boolean next();
+
+		ILightAccess.VirtuallySourced.NeighborAware.Extended<D, LI, WI, V> getLightAccess();
+	}
+
+	interface ILightCheckQueueIterator<D, LI, WI, V> extends ILightQueueIterator<D, LI, WI, V>
+	{
+		@Nullable
+		EnumFacing getDir();
+
+		@Nullable
+		D getDescriptor();
+
+		void markForRecheck();
+
+		/**
+		 * Mark the current position for rechecking, but store this in the neighbor in direction <code>dir</code>
+		 */
+		void markForRecheck(EnumFacing dir);
+	}
+
+	interface ILightSpreadQueueIterator<D, LI, WI, V> extends ILightQueueIterator<D, LI, WI, V>
+	{
+		EnumFacing getDir();
+
+		D getDescriptor();
+
+		void markForSpread(EnumFacing dir);
+	}
+
+	interface ILightUpdateQueueIterator<D, LI, WI, V> extends ILightQueueIterator<D, LI, WI, V>
+	{
+		D getDescriptor();
+
+		void markForRecheck();
+
+		void markForSpread(EnumFacing dir);
 	}
 }

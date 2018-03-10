@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2017 OverengineeredCodingDuo
+ * Copyright (c) 2017-2018 OverengineeredCodingDuo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,31 @@
  * SOFTWARE.
  */
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
-package ocd.lightpp.lighting.vanilla;
+package ocd.lightpp.api.vanilla.world;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.function.Supplier;
 
-import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.util.math.BlockPos;
+import ocd.lightpp.api.vanilla.world.ILightStorageHandler.Positioned;
+
+public interface ILightStorageHandler<T, C extends Supplier<Positioned<T>>>
+{
+	int get(T storage, BlockPos pos);
+
+	void set(T storage, BlockPos pos, int value);
+
+	T newStorage();
+
+	C newContainer();
+
+	Positioned<T> bind(BlockPos pos);
+
+	Positioned<T> bind(BlockPos pos, C container);
+
+	interface Positioned<T>
+	{
+		int get(T storage);
+
+		void set(T storage, int value);
+	}
+}

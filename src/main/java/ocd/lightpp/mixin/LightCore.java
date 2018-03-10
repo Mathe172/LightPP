@@ -36,7 +36,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
+import ocd.lightpp.RenderThreadGuard;
 import ocd.lightpp.api.lighting.ILightManager;
+import ocd.lightpp.api.util.IThreadGuard;
 import ocd.lightpp.lighting.LightingEngine;
 
 @Mixin(World.class)
@@ -51,7 +53,19 @@ public abstract class LightCore implements ILightManager
 	)
 	private void init(final CallbackInfo ci)
 	{
-		this.lightingEngine = new LightingEngine((World) (Object) this);
+		this.lightingEngine = new LightingEngine(this, ((World) (Object) this).profiler);
+	}
+
+	@Override
+	public IThreadGuard getThreadGuard()
+	{
+		return ((World) (Object) this).isRemote ? RenderThreadGuard.clientThreadGuard : RenderThreadGuard.serverThreadGuard;
+	}
+
+	@Override
+	public int getMaxLightValue()
+	{
+		return 15;
 	}
 
 	@Inject(
@@ -60,7 +74,7 @@ public abstract class LightCore implements ILightManager
 		cancellable = true)
 	private void calcLight(final EnumSkyBlock lightType, final BlockPos pos, final CallbackInfoReturnable<Boolean> ci)
 	{
-		this.lightingEngine.scheduleLightUpdate(lightType, pos);
+		this.lightingEngine.scheduleLightCheck(lightType, pos);
 		this.lightingEngine.procLightUpdates();
 		ci.setReturnValue(true);
 	}

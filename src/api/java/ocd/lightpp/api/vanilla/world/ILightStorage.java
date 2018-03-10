@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2017 OverengineeredCodingDuo
+ * Copyright (c) 2017-2018 OverengineeredCodingDuo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,58 +20,60 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
-package ocd.lightpp.api.lighting;
+package ocd.lightpp.api.vanilla.world;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightTypeManager.ILightIterator;
 
-public interface ILightAccess<LI, WI>
+public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider<D, LI, WI, C>
 {
-	boolean isValid();
+	@Override
+	Positioned.Writeable<D, LI> bind(BlockPos pos, C container);
 
-	boolean isLoaded();
+	LI bind(BlockPos pos);
 
-	LI getLightData();
+	/**
+	 * Legacy support
+	 */
+	@Nullable NBTBase serialize(EnumSkyBlock lightType);
 
-	WI getWorldInterface();
+	@Nullable NBTBase serializeExtraData();
 
-	interface Extended<D, LI, WI> extends ILightAccess<LI, WI>
+	/**
+	 * Legacy support
+	 */
+	void deserialize(EnumSkyBlock lightType, NBTBase data);
+
+	void deserializeExtraData(NBTBase data);
+
+	int
+
+	default T getStorage(final EnumSkyBlock lightType)
 	{
+		throw new UnsupportedOperationException();
+	}
+
+	interface Positioned<D, LI>
+	{
+		int get(final D desc);
+
 		ILightIterator<D> getLightIterator();
 
-		int getLight(D desc);
+		LI getInterface();
 
-		void setLight(D desc, int val);
-
-		void notifyLightSet(D desc);
-	}
-
-	interface NeighborAware<LI, WI> extends ILightAccess<LI, WI>
-	{
-		ILightAccess<LI, WI> getNeighbor(EnumFacing dir);
-
-		interface Extended<D, LI, WI> extends ILightAccess.NeighborAware<LI, WI>, ILightAccess.Extended<D, LI, WI>
+		interface Writeable<D, LI> extends Positioned<D, LI>
 		{
-			@Override
-			ILightAccess.Extended<D, LI, WI> getNeighbor(EnumFacing dir);
-		}
-	}
+			void set(D desc, int val);
 
-	interface VirtuallySourced<LI, WI, V> extends ILightAccess<LI, WI>
-	{
-		interface NeighborAware<LI, WI, V> extends ILightAccess.NeighborAware<LI, WI>, VirtuallySourced<LI, WI, V>
-		{
-			interface Extended<D, LI, WI, V> extends ILightAccess.VirtuallySourced.NeighborAware<LI, WI, V>, ILightAccess.NeighborAware.Extended<D, LI, WI>
+			default void notifyLightSet(final D desc)
 			{
 			}
 		}
-
-		@Nullable
-		V getVirtualSources();
 	}
 }

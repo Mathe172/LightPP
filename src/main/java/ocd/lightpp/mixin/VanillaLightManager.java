@@ -32,8 +32,8 @@ import net.minecraft.world.World;
 import ocd.lightpp.api.lighting.ILightHandler;
 import ocd.lightpp.api.lighting.ILightManager;
 import ocd.lightpp.api.lighting.ILightPropagator;
-import ocd.lightpp.lighting.vanilla.VanillaLightHandler;
-import ocd.lightpp.lighting.vanilla.VanillaLightPropagator;
+import ocd.lightpp.lighting.vanilla.light.VanillaLightPropagator;
+import ocd.lightpp.lighting.vanilla.world.VanillaLightHandler;
 
 @Mixin(World.class)
 public abstract class VanillaLightManager implements ILightManager, ILightPropagator.Factory
@@ -45,8 +45,8 @@ public abstract class VanillaLightManager implements ILightManager, ILightPropag
 	}
 
 	@Override
-	public ILightPropagator create(final EnumSkyBlock lightType)
+	public ILightPropagator createPropagator(final EnumSkyBlock lightType, final int maxLight)
 	{
-		return lightType == EnumSkyBlock.SKY ? new VanillaLightPropagator.Sky() : new VanillaLightPropagator.Block();
+		return lightType == EnumSkyBlock.SKY ? new VanillaLightPropagator.Sky(maxLight) : new VanillaLightPropagator.Block(maxLight);
 	}
 }

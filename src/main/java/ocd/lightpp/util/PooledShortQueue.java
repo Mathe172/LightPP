@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2017 OverengineeredCodingDuo
+ * Copyright (c) 2017-2018 OverengineeredCodingDuo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,110 +24,108 @@
 
 package ocd.lightpp.util;
 
-//PooledLongQueue code
+//PooledShortQueue code
 //Implement own queue with pooled segments to reduce allocation costs and reduce idle memory footprint
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import ocd.lightpp.api.util.IEmpty;
 
-import ocd.lightpp.api.util.Sized;
-
-public class PooledLongQueue implements Sized
+public class PooledShortQueue implements IEmpty
 {
 	private static final int CACHED_QUEUE_SEGMENTS_COUNT = 1 << 12;
-	private static final int QUEUE_SEGMENT_SIZE = 1 << 10;
+	private static final int QUEUE_SEGMENT_SIZE = 1 << 7;
 
 	public static class SegmentPool
 	{
-		private final Deque<PooledLongQueueSegment> segments = new ArrayDeque<>();
+		private PooledShortQueueSegment head;
+		private int pooledCount = 0;
 
-		private class PooledLongQueueSegment
+		private class PooledShortQueueSegment
 		{
-			private final long[] longArray = new long[QUEUE_SEGMENT_SIZE];
+			private final short[] shortArray = new short[QUEUE_SEGMENT_SIZE];
 			private int index = 0;
-			private PooledLongQueueSegment next;
+			private PooledShortQueueSegment next;
 
 			private void release()
 			{
-				this.index = 0;
-				this.next = null;
+				if (SegmentPool.this.pooledCount >= CACHED_QUEUE_SEGMENTS_COUNT)
+					return;
 
-				if (SegmentPool.this.segments.size() < CACHED_QUEUE_SEGMENTS_COUNT)
-					SegmentPool.this.segments.push(this);
+				this.index = 0;
+
+				++SegmentPool.this.pooledCount;
+				this.next = SegmentPool.this.head;
+				SegmentPool.this.head = this;
 			}
 
-			private PooledLongQueueSegment add(final long val)
+			private PooledShortQueueSegment add(final short val)
 			{
-				PooledLongQueueSegment ret = this;
+				PooledShortQueueSegment ret = this;
 
 				if (this.index == QUEUE_SEGMENT_SIZE)
-					ret = this.next = SegmentPool.this.getLongQueueSegment();
+					ret = this.next = SegmentPool.this.getShortQueueSegment();
 
-				ret.longArray[ret.index++] = val;
+				ret.shortArray[ret.index++] = val;
 				return ret;
 			}
 		}
 
-		public PooledLongQueue newQueue()
+		public PooledShortQueue newQueue()
 		{
-			return new PooledLongQueue(this);
+			return new PooledShortQueue(this);
 		}
 
-		private PooledLongQueueSegment getLongQueueSegment()
+		private PooledShortQueueSegment getShortQueueSegment()
 		{
-			if (this.segments.isEmpty())
-				return new PooledLongQueueSegment();
+			if (this.head == null)
+				return new PooledShortQueueSegment();
 
-			return this.segments.pop();
+			--this.pooledCount;
+			final PooledShortQueueSegment ret = this.head;
+			this.head = this.head.next;
+			return ret;
 		}
 	}
 
 	private final SegmentPool pool;
 
-	public PooledLongQueue(final SegmentPool pool)
+	public PooledShortQueue(final SegmentPool pool)
 	{
 		this.pool = pool;
 	}
 
-	private SegmentPool.PooledLongQueueSegment cur, last;
+	private SegmentPool.PooledShortQueueSegment cur, last;
 	private int size = 0;
 
 	private int index = 0;
 
-	@Override
-	public int size()
-	{
-		return this.size;
-	}
-
-	@Override
-	public boolean isEmpty()
-	{
-		return this.cur == null;
-	}
-
-	public void add(final long val)
+	public void add(final short val)
 	{
 		if (this.cur == null)
-			this.cur = this.last = this.pool.getLongQueueSegment();
+			this.cur = this.last = this.pool.getShortQueueSegment();
 
 		this.last = this.last.add(val);
 		++this.size;
 	}
 
-	public long poll()
+	public short poll()
 	{
-		final long ret = this.cur.longArray[this.index++];
+		final short ret = this.cur.shortArray[this.index++];
 		--this.size;
 
 		if (this.index == this.cur.index)
 		{
 			this.index = 0;
-			final SegmentPool.PooledLongQueueSegment next = this.cur.next;
+			final SegmentPool.PooledShortQueueSegment next = this.cur.next;
 			this.cur.release();
 			this.cur = next;
 		}
 
 		return ret;
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return this.size > 0;
 	}
 }

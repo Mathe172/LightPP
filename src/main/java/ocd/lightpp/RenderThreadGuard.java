@@ -20,14 +20,38 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
-package ocd.lightpp.api.lighting;
+package ocd.lightpp;
 
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import ocd.lightpp.api.util.IThreadGuard;
 
-public interface ILightManager extends ILightHandler.Factory, ILightPropagator.Factory
+public abstract class RenderThreadGuard
 {
-	IThreadGuard getThreadGuard();
+	@SidedProxy
+	public static IThreadGuard clientThreadGuard;
+	public static final IThreadGuard serverThreadGuard = new ServerProxy();
+
+	@SideOnly(Side.CLIENT)
+	public static class ClientProxy implements IThreadGuard
+	{
+		@Override
+		public boolean isCallingFromValidThread()
+		{
+			return Minecraft.getMinecraft().isCallingFromMinecraftThread();
+		}
+	}
+
+	public static class ServerProxy implements IThreadGuard
+	{
+		@Override
+		public boolean isCallingFromValidThread()
+		{
+			return true;
+		}
+	}
 }

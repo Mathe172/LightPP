@@ -20,14 +20,63 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
 package ocd.lightpp.api.lighting;
 
-import ocd.lightpp.api.util.IThreadGuard;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.util.INBTSerializable;
+import ocd.lightpp.api.lighting.ILightTypeManager.ILightStorage;
 
-public interface ILightManager extends ILightHandler.Factory, ILightPropagator.Factory
+public interface ILightTypeManager<D, MI, SI, S extends ILightStorage<D, SI>>
 {
-	IThreadGuard getThreadGuard();
+	ILightMap<D, MI> createMap();
+
+	interface ILightIterator<D>
+	{
+		int get();
+
+		D getDescriptor();
+
+		boolean next();
+	}
+
+	interface ILightMap<D, I>
+	{
+		void clear();
+
+		int get(D desc);
+
+		void set(D desc, int val);
+
+		ILightIterator<D> iterator();
+
+		I getInterface();
+	}
+
+	interface ILightStorage<D, I> extends INBTSerializable<NBTBase>
+	{
+		Positioned<D, I> bind(BlockPos pos);
+
+		interface Positioned<D, I>
+		{
+			int get(D desc);
+
+			void set(D desc, int val);
+
+			ILightIterator<D> iterator();
+
+			I getInterface();
+		}
+	}
+
+	interface ILightQueue<D, T>
+	{
+		boolean next();
+
+		D getDescriptor();
+
+		T get();
+	}
 }
