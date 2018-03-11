@@ -28,7 +28,7 @@ package ocd.lightpp.api.lighting;
 import javax.annotation.Nullable;
 
 import net.minecraft.util.EnumFacing;
-import ocd.lightpp.api.lighting.ILightTypeManager.ILightIterator;
+import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 
 public interface ILightAccess<LI, WI>
 {

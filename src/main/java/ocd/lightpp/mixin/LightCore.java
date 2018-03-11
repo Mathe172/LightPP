@@ -37,7 +37,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import ocd.lightpp.RenderThreadGuard;
-import ocd.lightpp.api.lighting.ILightManager;
 import ocd.lightpp.api.util.IThreadGuard;
 import ocd.lightpp.lighting.LightingEngine;
 

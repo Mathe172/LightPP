@@ -32,9 +32,9 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightAccess.VirtuallySourced;
+import ocd.lightpp.api.lighting.ILightMap;
+import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.lighting.ILightPropagator;
-import ocd.lightpp.api.lighting.ILightTypeManager.ILightIterator;
-import ocd.lightpp.api.lighting.ILightTypeManager.ILightMap;
 import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.light.IVanillaLightMap;
@@ -114,7 +114,7 @@ public class VanillaLightPropagator implements ILightPropagator<IVanillaLightDes
 				vSources.getLight(this.vLightMap.getInterface());
 
 				for (final ILightIterator<IVanillaLightDescriptor> it = this.vLightMap.iterator(); it.next(); )
-					lightMap.add(it.getDescriptor().getSkyBlock(), it.get() - this.opacity);
+					lightMap.add(it.getDescriptor().getSkyBlock(), it.getLight() - this.opacity);
 			}
 			else
 			{

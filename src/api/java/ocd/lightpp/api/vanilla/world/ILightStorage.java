@@ -27,16 +27,27 @@ package ocd.lightpp.api.vanilla.world;
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTBase;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
-import ocd.lightpp.api.lighting.ILightTypeManager.ILightIterator;
+import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 
-public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider<D, LI, WI, C>
+public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider.Cached<D, LI, WI, C>
 {
 	@Override
 	Positioned.Writeable<D, LI> bind(BlockPos pos, C container);
 
-	LI bind(BlockPos pos);
+	/**
+	 * @deprecated Legacy support
+	 */
+	@Deprecated
+	int getLight(EnumSkyBlock lightType, BlockPos pos);
+
+	/**
+	 * @deprecated Legacy support
+	 */
+	@Deprecated
+	void setLight(EnumSkyBlock lightType, BlockPos pos, int val);
 
 	/**
 	 * Legacy support
@@ -48,20 +59,41 @@ public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider<D, LI, WI
 	/**
 	 * Legacy support
 	 */
-	void deserialize(EnumSkyBlock lightType, NBTBase data);
+	void deserialize(EnumSkyBlock lightType, @Nullable NBTBase data);
 
-	void deserializeExtraData(NBTBase data);
+	void deserializeExtraData(@Nullable NBTBase data);
 
-	int
+	int calcPacketSize();
 
+	void writePacketData(PacketBuffer buf);
+
+	void readPacketData(PacketBuffer buf);
+
+	boolean isEmpty();
+
+	void cleanup();
+
+	/**
+	 * @deprecated Legacy support
+	 */
+	@Deprecated
 	default T getStorage(final EnumSkyBlock lightType)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * @deprecated Legacy support
+	 */
+	@Deprecated
+	default void setStorage(final EnumSkyBlock lightType, final @Nullable T storage)
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	interface Positioned<D, LI>
 	{
-		int get(final D desc);
+		int getLight(final D desc);
 
 		ILightIterator<D> getLightIterator();
 

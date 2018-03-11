@@ -20,16 +20,29 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.api.lighting;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
-
-public interface ILightEmptySectionProvider<D, LI, WI, C>
+public interface ILightMap<D, I>
 {
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, C container);
+	void clear();
 
-	WI getStorageInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	int get(D desc);
+
+	void set(D desc, int val);
+
+	ILightIterator<D> iterator();
+
+	I getInterface();
+
+	interface ILightIterator<D>
+	{
+		int getLight();
+
+		D getDescriptor();
+
+		boolean next();
+	}
 }

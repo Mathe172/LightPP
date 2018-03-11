@@ -26,15 +26,14 @@ package ocd.lightpp.api.vanilla.world;
 
 import java.util.function.Supplier;
 
+import jline.internal.Nullable;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import ocd.lightpp.api.vanilla.world.ILightStorageHandler.Positioned;
 
 public interface ILightStorageHandler<T, C extends Supplier<Positioned<T>>>
 {
-	int get(T storage, BlockPos pos);
-
-	void set(T storage, BlockPos pos, int value);
-
 	T newStorage();
 
 	C newContainer();
@@ -42,6 +41,22 @@ public interface ILightStorageHandler<T, C extends Supplier<Positioned<T>>>
 	Positioned<T> bind(BlockPos pos);
 
 	Positioned<T> bind(BlockPos pos, C container);
+
+	int get(T storage, BlockPos pos);
+
+	void set(T storage, BlockPos pos, int val);
+
+	boolean isEmpty(T storage);
+
+	NBTBase serialize(@Nullable T storage);
+
+	T deserialize(NBTBase data);
+
+	int calcPacketSize(@Nullable T storage);
+
+	void writePacketData(PacketBuffer buf, @Nullable T storage);
+
+	T readPacketData(PacketBuffer buf, @Nullable T storage);
 
 	interface Positioned<T>
 	{

@@ -43,9 +43,9 @@ import ocd.lightpp.api.lighting.ILightHandler.ILightSpreadQueue;
 import ocd.lightpp.api.lighting.ILightHandler.ILightSpreadQueueIterator;
 import ocd.lightpp.api.lighting.ILightHandler.ILightUpdateQueue;
 import ocd.lightpp.api.lighting.ILightHandler.ILightUpdateQueueIterator;
+import ocd.lightpp.api.lighting.ILightMap;
+import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.lighting.ILightPropagator;
-import ocd.lightpp.api.lighting.ILightTypeManager.ILightIterator;
-import ocd.lightpp.api.lighting.ILightTypeManager.ILightMap;
 
 public class LightingEngine<D, MI, LI, WI, V>
 {
@@ -197,7 +197,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 				{
 					final D curDesc = lit.getDescriptor();
 					final int oldLight = lightAccess.getLight(curDesc);
-					final int newLight = lit.get();
+					final int newLight = lit.getLight();
 
 					needsProcessing |= this.enqueueChanges(isValid, curDesc, oldLight, newLight);
 				}
@@ -206,7 +206,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 					for (final ILightIterator<D> lit = lightAccess.getLightIterator(); lit.next(); )
 					{
 						final D curDesc = lit.getDescriptor();
-						final int oldLight = lit.get();
+						final int oldLight = lit.getLight();
 						final int newLight = this.procLightMap.get(curDesc);
 
 						if (newLight == 0 && oldLight > 0)
@@ -316,7 +316,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 			{
 				final D curDesc = lit.getDescriptor();
 				final int oldLight = lightAccess.getLight(curDesc);
-				final int newLight = lit.get();
+				final int newLight = lit.getLight();
 
 				if (oldLight < newLight)
 				{
@@ -428,7 +428,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 										for (ILightIterator<D> lit = this.oldNeighborLight[i].iterator(); lit.next(); )
 										{
 											final EnumFacing dir = DIRECTIONS_NULL[i];
-											this.enqueueDarkening(lit.getDescriptor(), dir, lit.get(), this.getNeighborLightAccess(lightAccess, dir));
+											this.enqueueDarkening(lit.getDescriptor(), dir, lit.getLight(), this.getNeighborLightAccess(lightAccess, dir));
 										}
 
 							continue;
@@ -455,7 +455,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 						for (ILightIterator<D> lit = this.neighborSpread[i].iterator(); lit.next(); )
 						{
 							final D lDesc = lit.getDescriptor();
-							final int spread = lit.get();
+							final int spread = lit.getLight();
 
 							final ILightAccess.Extended<D, LI, WI> neighborLightAccess = this.getNeighborLightAccess(lightAccess, dir);
 
@@ -528,7 +528,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 		for (final ILightIterator<D> lit = lightMap.iterator(); lit.next(); )
 		{
-			final int spread = lit.get();
+			final int spread = lit.getLight();
 			final D lDesc = lit.getDescriptor();
 			final int curNeighborLight = neighborLightAccess.getLight(lDesc);
 
@@ -565,7 +565,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 		for (final ILightIterator<D> lit = this.procLightMap.iterator(); lit.next(); )
 		{
-			final int newLight = lit.get();
+			final int newLight = lit.getLight();
 
 			final D lDesc = lit.getDescriptor();
 

@@ -42,7 +42,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightHandler;
-import ocd.lightpp.api.lighting.ILightTypeManager.ILightIterator;
+import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.api.vanilla.world.IVanillaLightQueueDataset;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
@@ -340,7 +340,7 @@ public class VanillaLightHandler<D, LI, V, C> implements ILightHandler<D, LI, IV
 		@Override
 		public int getLight(final D desc)
 		{
-			return this.lightInterface.get(desc);
+			return this.lightInterface.getLight(desc);
 		}
 
 		@Override

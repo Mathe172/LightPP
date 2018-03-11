@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import ocd.lightpp.api.lighting.ILightHandler;
-import ocd.lightpp.api.lighting.ILightManager;
 import ocd.lightpp.api.lighting.ILightPropagator;
 import ocd.lightpp.lighting.vanilla.light.VanillaLightPropagator;
 import ocd.lightpp.lighting.vanilla.world.VanillaLightHandler;

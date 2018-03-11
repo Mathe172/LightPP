@@ -27,9 +27,14 @@ package ocd.lightpp.api.vanilla.world;
 import net.minecraft.util.math.BlockPos;
 import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
 
-public interface ILightProvider<D, LI, WI, C>
+public interface ILightProvider<D, LI, WI>
 {
-	Positioned<D, LI> bind(BlockPos pos, C container);
+	Positioned<D, LI> bind(BlockPos pos);
 
 	WI getStorageInterface(BlockPos pos);
+
+	interface Cached<D, LI, WI, C> extends ILightProvider<D, LI, WI>
+	{
+		Positioned<D, LI> bind(BlockPos pos, C container);
+	}
 }
