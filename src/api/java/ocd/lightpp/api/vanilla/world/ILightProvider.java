@@ -37,4 +37,22 @@ public interface ILightProvider<D, LI, WI>
 	{
 		Positioned<D, LI> bind(BlockPos pos, C container);
 	}
+
+	interface ILightProviderType<D, LI, WI, C>
+	{
+		class TypedLightProvider<D, LI, WI, C>
+		{
+			public final ILightProviderType<D, LI, WI, C> type;
+			public final ILightProvider<D, LI, WI, C> provider;
+
+			public TypedLightProvider(
+				final ILightProviderType<D, LI, WI, C> type,
+				final ILightProvider<D, LI, WI, C> provider
+			)
+			{
+				this.type = type;
+				this.provider = provider;
+			}
+		}
+	}
 }
