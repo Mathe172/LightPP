@@ -20,18 +20,11 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.api.vanilla.type;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
-
-public interface IEmptySectionLightPredictor<D, LI, WI, C>
+public class ContainerType<C>
 {
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface);
-
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface, C container);
-
-	WI getStorageInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
 }

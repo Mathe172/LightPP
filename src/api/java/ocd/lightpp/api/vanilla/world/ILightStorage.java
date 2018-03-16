@@ -108,26 +108,4 @@ public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider.Cached<D,
 			}
 		}
 	}
-
-	interface ILightStorageType<D, LI, WI, C, T>
-	{
-		class TypedLightStorage<D, LI, WI, C, T>
-		{
-			public final ILightStorageType<D, LI, WI, C, T> type;
-			public final ILightStorage<D, LI, WI, C, T> storage;
-
-			public TypedLightStorage(final ILightStorageType<D, LI, WI, C, T> type, final ILightStorage<D, LI, WI, C, T> storage)
-			{
-				this.type = type;
-				this.storage = storage;
-			}
-		}
-
-		interface ILightStorageHolder<T>
-		{
-			@Nullable TypedLightStorage<?, ?, ?, ?, T> getLightStorage();
-
-			void setLightStorage(TypedLightStorage<?, ?, ?, ?, T> lightStorageHolder);
-		}
-	}
 }

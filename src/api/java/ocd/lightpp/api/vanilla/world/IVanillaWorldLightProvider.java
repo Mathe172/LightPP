@@ -20,18 +20,31 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
 package ocd.lightpp.api.vanilla.world;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
+import javax.annotation.Nullable;
 
-public interface IEmptySectionLightPredictor<D, LI, WI, C>
+import net.minecraft.world.chunk.NibbleArray;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
+import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
+import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
+import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+
+public interface IVanillaWorldLightProvider
 {
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	@Nullable TypedCachedLightProvider<?, ?, ?, ?> getSkyLightProvider();
 
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface, C container);
+	@Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?> getEmptySectionLightProvider();
 
-	WI getStorageInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	TypedLightProvider<?, ?, ?> getEmptyLightProvider();
+
+	ILightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider();
+
+	void initSectionLight(TypedLightStorage<?, ?, ?, ?, ?> lightStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
+
+	boolean isSectionLightTrivial(TypedLightStorage<?, ?, ?, ?, ?> lightStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
 }

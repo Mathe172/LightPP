@@ -36,17 +36,22 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import ocd.lightpp.api.vanilla.world.ILightStorage.ILightStorageType.ILightStorageHolder;
-import ocd.lightpp.api.vanilla.world.ILightStorage.ILightStorageType.TypedLightStorage;
+import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
+import ocd.lightpp.util.Util;
 
 @Mixin(ExtendedBlockStorage.class)
-public class MixinSectionLightStorage implements ILightStorageHolder<NibbleArray>
+public abstract class MixinSectionLightStorage implements IVanillaLightStorageHolder
 {
+
 	private @Nullable TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorageHolder;
 
 	@Override
-	public @Nullable TypedLightStorage<?, ?, ?, ?, NibbleArray> getLightStorage()
+	public TypedLightStorage<?, ?, ?, ?, NibbleArray> getLightStorage()
 	{
+		if (this.lightStorageHolder == null)
+			throw new IllegalStateException("Light storage has not been initialized");
+
 		return this.lightStorageHolder;
 	}
 
@@ -56,12 +61,17 @@ public class MixinSectionLightStorage implements ILightStorageHolder<NibbleArray
 		this.lightStorageHolder = lightStorageHolder;
 	}
 
-	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "net.minecraft.world.chunk.NibbleArray"), allow = 2)
-	private @Nullable NibbleArray emptyLightArray()
+	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "net/minecraft/world/chunk/NibbleArray"), allow = 2)
+	private NibbleArray emptyLightArray()
 	{
-		return null;
+		return Util.EMPTY_NIBBLE_ARRAY;
 	}
 
+	/**
+	 * Fix: Sections that contain light but no blocks are considered empty.
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public boolean isEmpty()
 	{
@@ -72,18 +82,25 @@ public class MixinSectionLightStorage implements ILightStorageHolder<NibbleArray
 	@SuppressWarnings("deprecation")
 	private int getLight(final EnumSkyBlock lightType, final int x, final int y, final int z)
 	{
-		if (this.lightStorageHolder == null)
-			throw new IllegalStateException("Light storage has not been initialized");
-
-		return this.lightStorageHolder.storage.getLight(lightType, new BlockPos(x, y, z));
+		return this.getLightStorage().storage.getLight(lightType, new BlockPos(x, y, z));
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public int getSkyLight(final int x, final int y, final int z)
 	{
 		return this.getLight(EnumSkyBlock.SKY, x, y, z);
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public int getBlockLight(final int x, final int y, final int z)
 	{
@@ -94,18 +111,25 @@ public class MixinSectionLightStorage implements ILightStorageHolder<NibbleArray
 	@SuppressWarnings("deprecation")
 	private void setLight(final EnumSkyBlock lightType, final int x, final int y, final int z, final int value)
 	{
-		if (this.lightStorageHolder == null)
-			throw new IllegalStateException("Light storage has not been initialized");
-
-		this.lightStorageHolder.storage.setLight(lightType, new BlockPos(x, y, z), value);
+		this.getLightStorage().storage.setLight(lightType, new BlockPos(x, y, z), value);
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public void setSkyLight(final int x, final int y, final int z, final int value)
 	{
 		this.setLight(EnumSkyBlock.SKY, x, y, z, value);
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public void setBlockLight(final int x, final int y, final int z, final int value)
 	{
@@ -116,18 +140,25 @@ public class MixinSectionLightStorage implements ILightStorageHolder<NibbleArray
 	@SuppressWarnings("deprecation")
 	private NibbleArray getLightData(final EnumSkyBlock lightType)
 	{
-		if (this.lightStorageHolder == null)
-			throw new IllegalStateException("Light storage has not been initialized");
-
-		return this.lightStorageHolder.storage.getStorage(lightType);
+		return this.getLightStorage().storage.getStorage(lightType);
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public NibbleArray getSkyLight()
 	{
 		return this.getLightData(EnumSkyBlock.SKY);
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public NibbleArray getBlockLight()
 	{
@@ -138,18 +169,25 @@ public class MixinSectionLightStorage implements ILightStorageHolder<NibbleArray
 	@SuppressWarnings("deprecation")
 	private void setLightData(final EnumSkyBlock lightType, final NibbleArray data)
 	{
-		if (this.lightStorageHolder == null)
-			throw new IllegalStateException("Light storage has not been initialized");
-
-		this.lightStorageHolder.storage.setStorage(lightType, data);
+		this.getLightStorage().storage.setStorage(lightType, data);
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public void setSkyLight(final NibbleArray data)
 	{
 		this.setLightData(EnumSkyBlock.SKY, data);
 	}
 
+	/**
+	 * Legacy support
+	 *
+	 * @author PhiPro
+	 */
 	@Overwrite
 	public void setBlockLight(final NibbleArray data)
 	{

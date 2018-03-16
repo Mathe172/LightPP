@@ -20,18 +20,36 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.api.vanilla.type;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
+import ocd.lightpp.api.vanilla.world.ILightProvider;
 
-public interface IEmptySectionLightPredictor<D, LI, WI, C>
+public class LightProviderType<D, LI, WI>
 {
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	public final LightInterfaceType<D, LI> lightInterfaceType;
+	public final WorldLightInterfaceType<WI> worldLightInterfaceType;
 
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface, C container);
+	public LightProviderType(final LightInterfaceType<D, LI> lightInterfaceType, final WorldLightInterfaceType<WI> worldLightInterfaceType)
+	{
+		this.lightInterfaceType = lightInterfaceType;
+		this.worldLightInterfaceType = worldLightInterfaceType;
+	}
 
-	WI getStorageInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	public static class TypedLightProvider<D, LI, WI>
+	{
+		public final LightProviderType<D, LI, WI> type;
+		public final ILightProvider<D, LI, WI> provider;
+
+		public TypedLightProvider(
+			final LightProviderType<D, LI, WI> type,
+			final ILightProvider<D, LI, WI> provider
+		)
+		{
+			this.type = type;
+			this.provider = provider;
+		}
+	}
 }

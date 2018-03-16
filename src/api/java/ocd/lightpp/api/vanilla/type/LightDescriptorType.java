@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2017 OverengineeredCodingDuo
+ * Copyright (c) 2017-2018 OverengineeredCodingDuo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,8 @@
  *
  */
 
-package ocd.lightpp.mixin;
+package ocd.lightpp.api.vanilla.type;
 
-import org.spongepowered.asm.mixin.Mixin;
-
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.World;
-import ocd.lightpp.api.lighting.ILightHandler;
-import ocd.lightpp.api.lighting.ILightPropagator;
-import ocd.lightpp.lighting.vanilla.light.VanillaLightPropagator;
-import ocd.lightpp.lighting.vanilla.world.VanillaLightHandler;
-
-@Mixin(World.class)
-public abstract class VanillaLightManager implements ILightManager, ILightPropagator.Factory
+public class LightDescriptorType<D>
 {
-	@Override
-	public ILightHandler createLightHandler()
-	{
-		return new VanillaLightHandler((World) (Object) this);
-	}
-
-	@Override
-	public ILightPropagator createPropagator(final EnumSkyBlock lightType, final int maxLight)
-	{
-		return lightType == EnumSkyBlock.SKY ? new VanillaLightPropagator.Sky(maxLight) : new VanillaLightPropagator.Block(maxLight);
-	}
 }

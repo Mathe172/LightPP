@@ -4,9 +4,9 @@
 	"compatibilityLevel": "JAVA_8",
 	"minVersion": "0.7.5",
 	"mixins": [
-		"LightCore",
-		"VanillaLightManager",
 		"MixinSectionLightStorage",
-		"MixinChunkLightStorage"
+		"MixinChunkLightStorage",
+		"MixinWorldLightStorage",
+		"MixinAnvilChunkLoaderLightStorage"
 	]
 }

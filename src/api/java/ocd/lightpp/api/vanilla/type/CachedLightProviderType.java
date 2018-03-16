@@ -20,18 +20,36 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.api.vanilla.type;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
+import ocd.lightpp.api.vanilla.world.ILightProvider;
+import ocd.lightpp.api.vanilla.world.ILightProvider.Cached;
 
-public interface IEmptySectionLightPredictor<D, LI, WI, C>
+public class CachedLightProviderType<D, LI, WI, C>
 {
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	public final LightProviderType<D, LI, WI> lightProviderType;
+	public final ContainerType<C> containerType;
 
-	Positioned<D, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface, C container);
+	public CachedLightProviderType(final LightProviderType<D, LI, WI> lightProviderType, final ContainerType<C> containerType)
+	{
+		this.lightProviderType = lightProviderType;
+		this.containerType = containerType;
+	}
 
-	WI getStorageInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	public static abstract class TypedCachedLightProvider<D, LI, WI, C>
+	{
+		public final CachedLightProviderType<D, LI, WI, C> type;
+		public final ILightProvider.Cached<D, LI, WI, C> provider;
+
+		public TypedCachedLightProvider(final CachedLightProviderType<D, LI, WI, C> type, final Cached<D, LI, WI, C> provider)
+		{
+			this.type = type;
+			this.provider = provider;
+		}
+
+		public abstract C createContainer();
+	}
 }

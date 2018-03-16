@@ -62,6 +62,7 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public int getLight(final EnumSkyBlock lightType, final BlockPos pos)
 	{
 		final T storage = this.skyBlockStorages[lightType.ordinal()];
@@ -69,6 +70,7 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void setLight(final EnumSkyBlock lightType, final BlockPos pos, final int val)
 	{
 		final int index = lightType.ordinal();
