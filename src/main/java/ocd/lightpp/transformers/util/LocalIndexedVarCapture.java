@@ -20,12 +20,36 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
-package ocd.lightpp.lighting.vanilla.light;
+package ocd.lightpp.transformers.util;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.VarInsnNode;
 
-import mcp.MethodsReturnNonnullByDefault;
+public class LocalIndexedVarCapture implements InsnInjector.Simple
+{
+	private final Type type;
+	private final int index;
+
+	public LocalIndexedVarCapture(final Type type, final int index)
+	{
+		this.type = type;
+		this.index = index;
+	}
+
+	public LocalIndexedVarCapture(final String className, final int index)
+	{
+		this(Type.getObjectType(className), index);
+	}
+
+	@Override
+	public void inject(final InsnList insns, final AbstractInsnNode insn)
+	{
+		insns.insertBefore(insn, new VarInsnNode(this.type.getOpcode(Opcodes.ILOAD), this.index));
+	}
+}

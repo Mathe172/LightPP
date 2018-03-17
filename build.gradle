@@ -38,7 +38,8 @@ minecraft {
 	def args = [
 			"-Dmixin.debug.export=true", // Export classes from mixin to runDirectory/.mixin.out
 			"-Dmixin.debug.verbose=true", // Verbose mixin output for easier debugging of mixins
-			"-Dmixin.checks=true" // Check if all interface methods are overridden in mixin
+			"-Dmixin.checks=true", // Check if all interface methods are overridden in mixin
+			"-Dmixin.dumpTargetOnFailure=true"
 	]
 
 	clientJvmArgs.addAll args
@@ -53,6 +54,8 @@ minecraft {
 
 	clientRunArgs.addAll runArgs
 	serverRunArgs.addAll runArgs
+
+	setCoreMod "ocd.lightpp.LightPPLoadingPlugin"
 }
 
 mixin {
@@ -100,9 +103,10 @@ jar {
 	manifest {
 		attributes(
 				"TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
-				"TweakOrder": 0,
+				"TweakOrder": "0",
 				"MixinConfigs": "mixins.ocd.lightpp.json",
-				"ForceLoadAsMod": "true"
+				"ForceLoadAsMod": "true",
+				"FMLCorePluginContainsFMLMod": "true"
 		)
 	}
 }

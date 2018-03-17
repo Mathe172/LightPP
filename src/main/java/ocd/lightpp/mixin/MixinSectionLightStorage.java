@@ -29,21 +29,23 @@ import javax.annotation.Nullable;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.world.ILightStorage;
+import ocd.lightpp.api.vanilla.world.ISerializable;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
-import ocd.lightpp.util.Util;
+import ocd.lightpp.util.NameRef;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class MixinSectionLightStorage implements IVanillaLightStorageHolder
+public abstract class MixinSectionLightStorage implements IVanillaLightStorageHolder, ISerializable
 {
-
 	private @Nullable TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorageHolder;
 
 	@Override
@@ -61,10 +63,51 @@ public abstract class MixinSectionLightStorage implements IVanillaLightStorageHo
 		this.lightStorageHolder = lightStorageHolder;
 	}
 
-	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "net/minecraft/world/chunk/NibbleArray"), allow = 2)
-	private NibbleArray emptyLightArray()
+	@Override
+	public void serialize(final NBTTagCompound data)
 	{
-		return Util.EMPTY_NIBBLE_ARRAY;
+		final ILightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.getLightStorage().storage;
+
+		final NBTBase skyLight = lightStorage.serialize(EnumSkyBlock.SKY);
+		final NBTBase blockLight = lightStorage.serialize(EnumSkyBlock.BLOCK);
+		final NBTBase extraDara = lightStorage.serializeExtraData();
+
+		if (blockLight != null)
+			data.setTag(NameRef.BLOCKLIGHT_NAME, blockLight);
+
+		if (skyLight != null)
+			data.setTag(NameRef.SKYLIGHT_NAME, skyLight);
+
+		if (extraDara != null)
+			data.setTag(NameRef.LIGHT_DATA_NAME, extraDara);
+	}
+
+	@Override
+	public void deserialize(final NBTTagCompound data)
+	{
+		final ILightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.getLightStorage().storage;
+
+		lightStorage.deserialize(EnumSkyBlock.BLOCK, data.getTag(NameRef.BLOCKLIGHT_NAME));
+		lightStorage.deserialize(EnumSkyBlock.SKY, data.getTag(NameRef.SKYLIGHT_NAME));
+		lightStorage.deserializeExtraData(data.getTag(NameRef.LIGHT_DATA_NAME));
+	}
+
+	@Override
+	public int calcPacketSize()
+	{
+		return this.getLightStorage().storage.calcPacketSize();
+	}
+
+	@Override
+	public void writePacketData(final PacketBuffer buf)
+	{
+		this.getLightStorage().storage.writePacketData(buf);
+	}
+
+	@Override
+	public void readPacketData(final PacketBuffer buf)
+	{
+		this.getLightStorage().storage.readPacketData(buf);
 	}
 
 	/**

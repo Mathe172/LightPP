@@ -20,12 +20,26 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
-package ocd.lightpp.lighting.vanilla.world;
+package ocd.lightpp.transformers.util;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 
-import mcp.MethodsReturnNonnullByDefault;
+public interface InjectionLocator
+{
+	boolean test(MethodNode node, AbstractInsnNode insn);
+
+	interface Simple extends InjectionLocator
+	{
+		boolean test(AbstractInsnNode insn);
+
+		@Override
+		default boolean test(final MethodNode node, final AbstractInsnNode insn)
+		{
+			return this.test(insn);
+		}
+	}
+}

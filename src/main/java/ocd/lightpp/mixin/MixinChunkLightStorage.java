@@ -31,18 +31,13 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
@@ -50,9 +45,11 @@ import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.IVanillaChunkLightProvider;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldLightProvider;
+import ocd.lightpp.impl.IChunkLightStorageInitializer;
+import ocd.lightpp.impl.IWorldLightStorageInitializer;
 
 @Mixin(Chunk.class)
-public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvider
+public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvider, IChunkLightStorageInitializer
 {
 	@Shadow
 	@Final
@@ -67,20 +64,10 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	{
 	}
 
-	@Redirect(
-		method = "<init>(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/ChunkPrimer;II)V",
-		at = @At(value = "NEW", target = "net/minecraft/world/chunk/storage/ExtendedBlockStorage")
-	)
-	@SuppressWarnings("unchecked")
-	private ExtendedBlockStorage initEmptyBlockStorage(final int y, final boolean storeSkylight)
+	@Override
+	public void initEmptyLightStorage(final ExtendedBlockStorage blockStorage)
 	{
-		final ExtendedBlockStorage blockStorage = new ExtendedBlockStorage(y, storeSkylight);
-
-		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = ((IVanillaWorldLightProvider) this.world).getLightStorageProvider().createLightStorage();
-
-		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
-
-		return blockStorage;
+		((IWorldLightStorageInitializer) this.world).initEmptyLightStorage(blockStorage);
 	}
 
 	private @Nullable ExtendedBlockStorage getUpperLightStorage(int y)
@@ -96,9 +83,10 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 		return null;
 	}
 
-	private ExtendedBlockStorage initBlockStorage(final ExtendedBlockStorage blockStorage)
+	@Override
+	public void initLightStorage(final ExtendedBlockStorage blockStorage)
 	{
-		return this.initBlockStorage(blockStorage, this.getUpperLightStorage(blockStorage.getYLocation() >> 4));
+		this.initBlockStorage(blockStorage, this.getUpperLightStorage(blockStorage.getYLocation() >> 4));
 	}
 
 	private ExtendedBlockStorage initBlockStorage(final ExtendedBlockStorage blockStorage, final @Nullable ExtendedBlockStorage upperBlockStorage)
@@ -114,35 +102,25 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 		return blockStorage;
 	}
 
-	@Redirect(
-		method = "setBlockState",
-		at = @At(value = "NEW", target = "net/minecraft/world/chunk/storage/ExtendedBlockStorage")
-	)
-	@SuppressWarnings("unchecked")
-	private ExtendedBlockStorage initBlockStorageSetBlockState(final int y, final boolean storeSkylight)
+	@Override
+	public void initLightStorageRead(final ExtendedBlockStorage blockStorage, final int availableSections)
 	{
-		return this.initBlockStorage(new ExtendedBlockStorage(y, storeSkylight));
-	}
+		this.initLightStorage(blockStorage);
 
-	@SideOnly(Side.CLIENT)
-	@Redirect(
-		method = "read",
-		at = @At(value = "NEW", target = "net/minecraft/world/chunk/storage/ExtendedBlockStorage")
-	)
-	@SuppressWarnings("unchecked")
-	private ExtendedBlockStorage initBlockStorageRead(final int y, final boolean storeSkylight, final PacketBuffer buf, final int availableSections, final boolean groundUpContinuous)
-	{
+		final int y = blockStorage.getYLocation();
 		final int index = y >> 4;
 
 		if (index > 0 && (availableSections & (1 << (index - 1))) == 0)
 		{
-			final ExtendedBlockStorage lowerBlockStorage = this.storageArrays[index - 1];
+			ExtendedBlockStorage lowerBlockStorage = this.storageArrays[index - 1];
 
 			if (lowerBlockStorage == null && ((IVanillaWorldLightProvider) this.world).getEmptySectionLightProvider() != null)
-				this.storageArrays[index - 1] = this.initBlockStorage(new ExtendedBlockStorage(y - 16, storeSkylight));
+			{
+				lowerBlockStorage = new ExtendedBlockStorage(y - 16, this.world.provider.hasSkyLight());
+				this.initLightStorage(lowerBlockStorage);
+				this.storageArrays[index - 1] = lowerBlockStorage;
+			}
 		}
-
-		return this.initBlockStorage(new ExtendedBlockStorage(y, storeSkylight));
 	}
 
 	@Override
@@ -245,7 +223,8 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 
 		if (blockStorage == null)
 		{
-			blockStorage = this.initBlockStorage(new ExtendedBlockStorage(index << 4, this.world.provider.hasSkyLight()));
+			blockStorage = new ExtendedBlockStorage(index << 4, this.world.provider.hasSkyLight());
+			this.initLightStorage(blockStorage);
 			this.storageArrays[index] = blockStorage;
 		}
 

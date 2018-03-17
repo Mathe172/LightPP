@@ -25,11 +25,23 @@
 
 package ocd.lightpp.util;
 
-import net.minecraft.world.chunk.NibbleArray;
-
-public class Util
+public class NameRef
 {
-	public static final NibbleArray EMPTY_NIBBLE_ARRAY = new NibbleArray();
-	public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
-	public static final byte[] BYTE_ARRAY_2048 = new byte[2048];
+	public static final String BLOCKLIGHT_NAME = "BlockLight";
+	public static final String SKYLIGHT_NAME = "SkyLight";
+	public static final String LIGHT_DATA_NAME = "LightData";
+
+	public static final String EXTENDED_BLOCK_STORAGE_NAME = "net/minecraft/world/chunk/storage/ExtendedBlockStorage";
+	public static final String GET_BLOCK_LIGHT_NAME = "func_76661_k";
+	public static final String GET_BLOCK_LIGHT_DESC = "()Lnet/minecraft/world/chunk/NibbleArray;";
+	public static final String GET_SKY_LIGHT_NAME = "func_76671_l";
+	public static final String GET_SKY_LIGHT_DESC = "()Lnet/minecraft/world/chunk/NibbleArray;";
+	public static final String SET_BLOCK_LIGHT_NAME = "func_76659_c";
+	public static final String SET_BLOCK_LIGHT_DESC = "(Lnet/minecraft/world/chunk/NibbleArray;)V";
+	public static final String SET_SKY_LIGHT_NAME = "func_76666_d";
+	public static final String SET_SKY_LIGHT_DESC = "(Lnet/minecraft/world/chunk/NibbleArray;)V";
+
+	public static final String PACKET_BUFFER_NAME = "net/minecraft/network/PacketBuffer";
+
+	public static final String ISERIALIZABLE_NAME = "ocd/lightpp/api/vanilla/world/ISerializable";
 }

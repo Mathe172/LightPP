@@ -37,11 +37,19 @@ import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
+import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldLightProvider;
+import ocd.lightpp.impl.IWorldLightStorageInitializer;
 
 @Mixin(World.class)
-public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvider
+public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvider, IWorldLightStorageInitializer
 {
+	@Override
+	public void initEmptyLightStorage(final ExtendedBlockStorage blockStorage)
+	{
+		((IVanillaLightStorageHolder) blockStorage).setLightStorage(this.getLightStorageProvider().createLightStorage());
+	}
+
 	@Override
 	public @Nullable TypedCachedLightProvider<?, ?, ?, ?> getSkyLightProvider()
 	{

@@ -20,36 +20,23 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.lighting.vanilla.light;
+package ocd.lightpp.api.vanilla.world;
 
-import net.minecraft.world.EnumSkyBlock;
-import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
 
-public class VanillaLightDescriptor implements IVanillaLightDescriptor
+public interface ISerializable
 {
-	private EnumSkyBlock skyBlock;
+	void serialize(NBTTagCompound data);
 
-	public VanillaLightDescriptor()
-	{
-		this(EnumSkyBlock.BLOCK);
-	}
+	void deserialize(NBTTagCompound data);
 
-	public VanillaLightDescriptor(final EnumSkyBlock skyBlock)
-	{
+	int calcPacketSize();
 
-		this.skyBlock = skyBlock;
-	}
+	void writePacketData(PacketBuffer buf);
 
-	@Override
-	public EnumSkyBlock getSkyBlock()
-	{
-		return this.skyBlock;
-	}
-
-	public void setSkyBlock(final EnumSkyBlock skyBlock)
-	{
-		this.skyBlock = skyBlock;
-	}
+	void readPacketData(PacketBuffer buf);
 }
