@@ -29,7 +29,7 @@ import ocd.lightpp.transformers.util.ConstantMatcher;
 import ocd.lightpp.transformers.util.InitInjector;
 import ocd.lightpp.transformers.util.InitInjector.ArgLoader;
 import ocd.lightpp.transformers.util.InvokeInjector;
-import ocd.lightpp.transformers.util.LineReplacer;
+import ocd.lightpp.transformers.util.LineInjector;
 import ocd.lightpp.transformers.util.LocalTypedVarCapture;
 import ocd.lightpp.transformers.util.MethodClassTransformer;
 import ocd.lightpp.transformers.util.MethodMatcher;
@@ -60,62 +60,64 @@ public class TransformerAnvilChunkLoaderLightStorage extends MethodClassTransfor
 		super(CLASS_NAME);
 
 		this.addTransformer(READ_NAME, READ_DESC, true,
-			new InitInjector().addInjector(
+			new InitInjector(
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
-				new ArgLoader(1).andThen(
-					new InvokeInjector(
-						WORLD_LIGHT_STORAGE_INITIALIZER_NAME,
-						INIT_EMPTY_NAME,
-						INIT_EMPTY_DESC,
-						false,
-						true
-					)
+				new ArgLoader(1),
+				new InvokeInjector(
+					WORLD_LIGHT_STORAGE_INITIALIZER_NAME,
+					INIT_EMPTY_NAME,
+					INIT_EMPTY_DESC,
+					false,
+					true
 				)
-			).andThen(
-				new LineReplacer().addProcessor(
-					new MethodMatcher(
-						NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-						NameRef.SET_BLOCK_LIGHT_NAME,
-						NameRef.SET_BLOCK_LIGHT_DESC,
-						true
-					),
-					new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME).andThen(
-						new LocalTypedVarCapture(NBT_COMPOUND_NAME)).andThen(
-						new InvokeInjector(
-							NameRef.ISERIALIZABLE_NAME,
-							DESERIALIZE_NAME,
-							DESERIALIZE_DESC,
-							false,
-							true
-						)
-					)
-				).addProcessor(
-					new MethodMatcher(
-						NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-						NameRef.SET_SKY_LIGHT_NAME,
-						NameRef.SET_SKY_LIGHT_DESC,
-						true
-					)
+			),
+			new LineInjector(
+				new MethodMatcher(
+					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
+					NameRef.SET_BLOCK_LIGHT_NAME,
+					NameRef.SET_BLOCK_LIGHT_DESC,
+					true
+				),
+				LineInjector.REMOVE,
+				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalTypedVarCapture(NBT_COMPOUND_NAME),
+				new InvokeInjector(
+					NameRef.ISERIALIZABLE_NAME,
+					DESERIALIZE_NAME,
+					DESERIALIZE_DESC,
+					false,
+					true
 				)
+			),
+			new LineInjector(
+				new MethodMatcher(
+					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
+					NameRef.SET_SKY_LIGHT_NAME,
+					NameRef.SET_SKY_LIGHT_DESC,
+					true
+				),
+				LineInjector.REMOVE
 			)
 		);
 
 		this.addTransformer(WRITE_NAME, WRITE_DESC, true,
-			new LineReplacer().addProcessor(
+			new LineInjector(
 				new ConstantMatcher(NameRef.BLOCKLIGHT_NAME),
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME).andThen(
-					new LocalTypedVarCapture(NBT_COMPOUND_NAME)).andThen(
-					new InvokeInjector(
-						NameRef.ISERIALIZABLE_NAME,
-						SERIALIZE_NAME,
-						SERIALIZE_DESC,
-						false,
-						true
-					)
+				LineInjector.REMOVE,
+				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalTypedVarCapture(NBT_COMPOUND_NAME),
+				new InvokeInjector(
+					NameRef.ISERIALIZABLE_NAME,
+					SERIALIZE_NAME,
+					SERIALIZE_DESC,
+					false,
+					true
 				)
-			).addProcessor(
-				new ConstantMatcher(NameRef.SKYLIGHT_NAME)
+			),
+			new LineInjector(
+				new ConstantMatcher(NameRef.SKYLIGHT_NAME),
+				LineInjector.REMOVE
 			)
 		);
 	}

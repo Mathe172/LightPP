@@ -31,6 +31,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.Interpreter;
 
 import ocd.lightpp.transformers.util.MethodSignature.MethodDescriptor;
 
@@ -81,7 +84,13 @@ public class InvokeInjector implements InsnInjector
 	}
 
 	@Override
-	public void inject(final String className, final MethodNode node, final AbstractInsnNode insn)
+	public void inject(
+		final String className,
+		final MethodNode methodNode,
+		final AbstractInsnNode insn,
+		final Frame<TrackingValue> frame,
+		final Interpreter<TrackingValue> interpreter
+	) throws AnalyzerException
 	{
 		@Nullable final String owner = this.md.owner();
 		@Nullable final String desc = this.md.desc;
@@ -89,9 +98,13 @@ public class InvokeInjector implements InsnInjector
 		if (desc == null)
 			throw new IllegalStateException("Injection with null descriptor");
 
-		node.instructions.insertBefore(
+		final AbstractInsnNode invokeInsn = new MethodInsnNode(this.opcode, owner == null ? className : owner, this.md.name, desc, this.iface);
+
+		methodNode.instructions.insertBefore(
 			insn,
-			new MethodInsnNode(this.opcode, owner == null ? className : owner, this.md.name, desc, this.iface)
+			invokeInsn
 		);
+
+		frame.execute(invokeInsn, interpreter);
 	}
 }

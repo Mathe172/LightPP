@@ -25,31 +25,29 @@
 
 package ocd.lightpp.transformers.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import javax.annotation.Nullable;
 
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.Interpreter;
 
 import ocd.lightpp.transformers.util.MethodSignature.MethodDescriptor;
+import ocd.lightpp.transformers.util.TrackingValue.TrackingInterpreter;
 
 public class InitInjector implements MethodNodeTransformer
 {
-	private final Multimap<String, Descriptor> descriptors = ArrayListMultimap.create();
+	public static final InsnInjector CAPTURE_THIS = new ArgLoader(0);
 
-	public static final InsnInjector.Simple CAPTURE_THIS = new ArgLoader(0);
-
-	public static class ArgLoader implements InsnInjector.Simple
+	public static class ArgLoader implements InsnInjector
 	{
 		private final int index;
 
@@ -59,36 +57,58 @@ public class InitInjector implements MethodNodeTransformer
 		}
 
 		@Override
-		public void inject(final InsnList insns, final AbstractInsnNode insn)
+		public void inject(
+			final String className,
+			final MethodNode methodNode,
+			final AbstractInsnNode insn,
+			final Frame<TrackingValue> frame,
+			final Interpreter<TrackingValue> interpreter
+		) throws AnalyzerException
 		{
-			insns.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, this.index));
-			insns.insertBefore(insn, new InsnNode(Opcodes.SWAP));
+			final AbstractInsnNode loadInsn = new VarInsnNode(Opcodes.ALOAD, this.index);
+			final AbstractInsnNode swapInsn = new InsnNode(Opcodes.SWAP);
+
+			final InsnList insns = methodNode.instructions;
+
+			insns.insertBefore(insn, loadInsn);
+			insns.insertBefore(insn, swapInsn);
+
+			frame.execute(loadInsn, interpreter);
+			frame.execute(swapInsn, interpreter);
 		}
 	}
 
-	public void addInjector(final Descriptor desc)
+	private final Descriptor descriptor;
+
+	public InitInjector(final Descriptor desc)
 	{
-		this.descriptors.put(desc.desc.owner, desc);
+		this.descriptor = desc;
 	}
 
-	public InitInjector addInjector(
+	public InitInjector(
 		final String owner,
 		final @Nullable String desc,
-		final InsnInjector injector
+		final InsnInjector... injectors
 	)
 	{
-		this.addInjector(new Descriptor(new MethodDescriptor(owner, "<init>", desc, false), injector));
-
-		return this;
+		this(new Descriptor(new MethodDescriptor(owner, "<init>", desc, false), injectors));
 	}
 
 	@Override
-	public MethodNode transform(final String className, final MethodNode methodNode)
+	public MethodNode transform(final String className, final MethodNode methodNode, final Logger logger) throws MethodTransformerException, AnalyzerException
 	{
+		final Interpreter<TrackingValue> interpreter = new TrackingInterpreter();
+
+		final TrackingValue retType = interpreter.newValue(Type.getReturnType(methodNode.desc));
+
+		final Frame<TrackingValue> frame = FrameUtil.getFrame(null, className, methodNode, retType, interpreter);
+
 		final InsnList insns = methodNode.instructions;
 
 		for (AbstractInsnNode insn = insns.getFirst(); insn != null; insn = insn.getNext())
 		{
+			FrameUtil.execute(insn, frame, className, methodNode, retType, interpreter);
+
 			if (!(insn instanceof MethodInsnNode))
 				continue;
 
@@ -100,40 +120,27 @@ public class InitInjector implements MethodNodeTransformer
 			if (!"<init>".equals(methodInsnNode.name))
 				continue;
 
-			final Collection<Descriptor> candidates = this.descriptors.get(methodInsnNode.owner);
-
-			if (candidates.isEmpty())
+			if (!this.descriptor.desc.owner.equals(methodInsnNode.owner))
 				continue;
 
-			List<Descriptor> matches = null;
-
-			for (final Descriptor candidate : candidates)
-			{
-				final MethodDescriptor md = candidate.desc;
-
-				if (md.desc == null || md.desc.equals(methodInsnNode.desc))
-				{
-					if (matches == null)
-						matches = new ArrayList<>();
-
-					matches.add(candidate);
-				}
-			}
-
-			if (matches == null)
+			if (this.descriptor.desc.desc != null && !this.descriptor.desc.desc.equals(methodInsnNode.desc))
 				continue;
 
 			final AbstractInsnNode next = insn.getNext();
 
-			for (int j = 0; j < matches.size(); ++j)
-			{
-				if (j < matches.size() - 1)
-					insns.insertBefore(next, new InsnNode(Opcodes.DUP));
+			final AbstractInsnNode dupInsn = new InsnNode(Opcodes.DUP);
 
-				insns.insertBefore(next, new InsnNode(Opcodes.DUP));
+			insns.insertBefore(next, dupInsn);
 
-				matches.get(j).injector.inject(className, methodNode, next);
-			}
+			if (frame.getStackSize() == 0 || !this.descriptor.desc.owner.equals(frame.getStack(frame.getStackSize() - 1).getType().getInternalName()))
+				throw new MethodTransformerException("Missing instance of new object on operand stack: " + this.descriptor.desc.owner, methodNode, next);
+
+			frame.execute(dupInsn, interpreter);
+
+			for (int i = 0; i < this.descriptor.injectors.length; ++i)
+				this.descriptor.injectors[i].inject(className, methodNode, next, frame, interpreter);
+
+			insn = next.getPrevious();
 		}
 
 		return methodNode;
@@ -142,12 +149,12 @@ public class InitInjector implements MethodNodeTransformer
 	public static class Descriptor
 	{
 		public final MethodDescriptor desc;
-		public final InsnInjector injector;
+		public final InsnInjector[] injectors;
 
-		public Descriptor(final MethodDescriptor desc, final InsnInjector injector)
+		public Descriptor(final MethodDescriptor desc, final InsnInjector... injectors)
 		{
 			this.desc = desc;
-			this.injector = injector;
+			this.injectors = injectors;
 		}
 	}
 }

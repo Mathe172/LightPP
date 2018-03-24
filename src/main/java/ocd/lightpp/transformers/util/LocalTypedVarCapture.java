@@ -25,16 +25,14 @@
 
 package ocd.lightpp.transformers.util;
 
-import java.util.List;
-import javax.annotation.Nullable;
-
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.FrameNode;
-import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.Interpreter;
 
 public class LocalTypedVarCapture implements InsnInjector
 {
@@ -53,143 +51,94 @@ public class LocalTypedVarCapture implements InsnInjector
 	}
 
 	@Override
-	public void inject(final String className, final MethodNode node, final AbstractInsnNode insn)
+	public void inject(
+		final String className,
+		final MethodNode methodNode,
+		final AbstractInsnNode insn,
+		final Frame<TrackingValue> frame,
+		final Interpreter<TrackingValue> interpreter
+	) throws MethodTransformerException, AnalyzerException
 	{
-		final String[] types = getTypes(className, node, insn);
-
 		int var = -1;
 
-		for (int i = 0; i < types.length; ++i)
+		for (int i = 0; i < frame.getLocals(); ++i)
 		{
-			final String type = types[i];
+			final Type type = frame.getLocal(i).getType();
 
-			if (type == null || !this.desc.equals(type))
+			if (type == null || !this.desc.equals(type.getDescriptor()))
 				continue;
 
 			if (var != -1)
-				throw new IllegalStateException("Found multiple locals with requested type " + this.desc);
+				throw new MethodTransformerException("Found multiple locals with requested type: " + this.desc, methodNode, insn);
 
 			var = i;
 		}
 
 		if (var == -1)
-			throw new IllegalStateException("No local with requested type " + this.desc);
+			throw new MethodTransformerException("No local with requested type: " + this.desc, methodNode, insn);
 
-		node.instructions.insertBefore(insn, new VarInsnNode(this.opcode, var));
+		final AbstractInsnNode varInsn = new VarInsnNode(this.opcode, var);
+
+		methodNode.instructions.insertBefore(insn, varInsn);
+
+		frame.execute(varInsn, interpreter);
 	}
 
 	@Override
-	public void inject(final String className, final MethodNode methodNode, final InsnList slice, final AbstractInsnNode insn)
+	public void inject(
+		final String className,
+		final MethodNode methodNode,
+		final AbstractInsnNode sliceStart,
+		final AbstractInsnNode sliceEnd,
+		final Frame<TrackingValue> frameStart,
+		final Frame<TrackingValue> frameEnd,
+		final Interpreter<TrackingValue> interpreter
+	) throws MethodTransformerException, AnalyzerException
 	{
-		final int var = getVar(this.opcode, this.desc, className, methodNode, slice, insn);
-		methodNode.instructions.insertBefore(insn, new VarInsnNode(this.opcode, var));
+		final int var = getVar(this.opcode, this.desc, methodNode, sliceStart, sliceEnd, frameEnd);
+
+		final VarInsnNode varInsn = new VarInsnNode(this.opcode, var);
+
+		methodNode.instructions.insertBefore(sliceEnd, varInsn);
+
+		frameEnd.execute(varInsn, interpreter);
 	}
 
 	public static int getVar(
 		final int opcode,
 		final String desc,
-		final String className,
 		final MethodNode methodNode,
-		final InsnList slice,
-		final AbstractInsnNode insn
-	)
+		final AbstractInsnNode sliceStart,
+		final AbstractInsnNode sliceEnd,
+		final Frame<TrackingValue> frame
+	) throws MethodTransformerException
 	{
-		final String[] types = getTypes(className, methodNode, insn);
-
 		int var = -1;
 
-		for (AbstractInsnNode insn_ = slice.getFirst(); insn_ != null; insn_ = insn_.getNext())
+		for (AbstractInsnNode insn = sliceStart; insn != null && insn != sliceEnd; insn = insn.getNext())
 		{
-			if (!(insn_ instanceof VarInsnNode))
+			if (!(insn instanceof VarInsnNode))
 				continue;
 
-			final VarInsnNode varInsn = (VarInsnNode) insn_;
+			final VarInsnNode varInsn = (VarInsnNode) insn;
 
 			if (varInsn.getOpcode() != opcode)
 				continue;
 
-			final String type = types[varInsn.var];
+			final Type type = frame.getLocal(varInsn.var).getType();
 
-			if (type == null || !desc.equals(type))
+			if (type == null || !desc.equals(type.getDescriptor()))
 				continue;
 
 			if (var != -1)
-				throw new IllegalStateException("Found multiple locals with requested type " + desc);
+				throw new MethodTransformerException("Found multiple locals with requested type: " + desc, methodNode, insn);
 
 			var = varInsn.var;
 		}
 
 		if (var == -1)
-			throw new IllegalStateException("No local with requested type " + desc);
+			throw new MethodTransformerException("No local with requested type: " + desc, methodNode, sliceEnd);
 
 		return var;
-	}
-
-	public static String[] getTypes(final String className, final MethodNode methodNode, final AbstractInsnNode insn)
-	{
-		return getTypes(className, methodNode, getFrame(insn));
-	}
-
-	public static @Nullable FrameNode getFrame(AbstractInsnNode insn)
-	{
-		for (; insn != null; insn = insn.getPrevious())
-			if (insn instanceof FrameNode)
-			{
-				final FrameNode frame = (FrameNode) insn;
-
-				if (frame.type != Opcodes.F_NEW)
-					throw new IllegalArgumentException("Require expanded frames");
-
-				return frame;
-			}
-
-		return null;
-	}
-
-	public static String[] getTypes(final String className, final MethodNode methodNode, @Nullable final FrameNode frame)
-	{
-		if (frame == null)
-		{
-			final Type[] args = Type.getArgumentTypes(methodNode.desc);
-
-			final boolean staticAcc = (methodNode.access & Opcodes.ACC_STATIC) != 0;
-
-			final String[] ret = new String[staticAcc ? args.length : args.length + 1];
-
-			if (!staticAcc)
-				ret[0] = "L" + className + ";";
-
-			for (int i = 0; i < args.length; ++i)
-				ret[staticAcc ? i : i + 1] = args[i].getDescriptor();
-
-			return ret;
-		}
-
-		final List<Object> locals = frame.local;
-
-		final String[] ret = new String[locals.size()];
-
-		for (int i = 0; i < locals.size(); ++i)
-		{
-			final Object local = locals.get(i);
-
-			if (local instanceof String)
-				ret[i] = "L" + local + ";";
-			else if (local instanceof Integer)
-			{
-				final Integer type = (Integer) local;
-
-				if (type == Opcodes.INTEGER)
-					ret[i] = Type.INT_TYPE.getDescriptor();
-				else if (type == Opcodes.FLOAT)
-					ret[i] = Type.FLOAT_TYPE.getDescriptor();
-				else if (type == Opcodes.LONG)
-					ret[i] = Type.LONG_TYPE.getDescriptor();
-				else if (type == Opcodes.DOUBLE)
-					ret[i] = Type.DOUBLE_TYPE.getDescriptor();
-			}
-		}
-
-		return ret;
 	}
 }

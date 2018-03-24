@@ -29,7 +29,7 @@ import org.objectweb.asm.Type;
 
 import ocd.lightpp.transformers.util.InitInjector;
 import ocd.lightpp.transformers.util.InvokeInjector;
-import ocd.lightpp.transformers.util.LineReplacer;
+import ocd.lightpp.transformers.util.LineInjector;
 import ocd.lightpp.transformers.util.LocalIndexedVarCapture;
 import ocd.lightpp.transformers.util.LocalTypedVarCapture;
 import ocd.lightpp.transformers.util.MethodClassTransformer;
@@ -61,72 +61,70 @@ public class TransformerChunkLightStorage extends MethodClassTransformer
 		super(CLASS_NAME);
 
 		this.addTransformer("<init>", INIT_PRIMER_DESC, false,
-			new InitInjector().addInjector(
+			new InitInjector(
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
-				InitInjector.CAPTURE_THIS.andThen(
-					new InvokeInjector(
-						INIT_EMPTY_NAME,
-						INIT_EMPTY_DESC,
-						false
-					)
+				InitInjector.CAPTURE_THIS,
+				new InvokeInjector(
+					INIT_EMPTY_NAME,
+					INIT_EMPTY_DESC,
+					false
 				)
 			)
 		);
 
 		this.addTransformer(READ_NAME, READ_DESC, true,
-			new InitInjector().addInjector(
+			new InitInjector(
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
-				InitInjector.CAPTURE_THIS.andThen(new LocalIndexedVarCapture(Type.INT_TYPE, 2)).andThen(
-					new InvokeInjector(
-						INIT_READ_NAME,
-						INIT_READ_DESC,
-						false
-					)
+				InitInjector.CAPTURE_THIS,
+				new LocalIndexedVarCapture(Type.INT_TYPE, 2),
+				new InvokeInjector(
+					INIT_READ_NAME,
+					INIT_READ_DESC,
+					false
 				)
-			).andThen(
-				new LineReplacer().addProcessor(
-					new MethodMatcher(
-						NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-						NameRef.GET_BLOCK_LIGHT_NAME,
-						NameRef.GET_BLOCK_LIGHT_DESC,
-						true
-					),
-					new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME).andThen(
-						new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1)).andThen(
-						new InvokeInjector(
-							NameRef.ISERIALIZABLE_NAME,
-							READ_PACKET_NAME,
-							READ_PACKET_DESC,
-							false,
-							true
-						)
-					)
-				).addProcessor(
-					new MethodMatcher(
-						NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-						NameRef.GET_SKY_LIGHT_NAME,
-						NameRef.GET_SKY_LIGHT_DESC,
-						true
-					)
+			),
+			new LineInjector(
+				new MethodMatcher(
+					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
+					NameRef.GET_BLOCK_LIGHT_NAME,
+					NameRef.GET_BLOCK_LIGHT_DESC,
+					true
+				),
+				LineInjector.REMOVE,
+				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1),
+				new InvokeInjector(
+					NameRef.ISERIALIZABLE_NAME,
+					READ_PACKET_NAME,
+					READ_PACKET_DESC,
+					false,
+					true
 				)
+			),
+			new LineInjector(
+				new MethodMatcher(
+					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
+					NameRef.GET_SKY_LIGHT_NAME,
+					NameRef.GET_SKY_LIGHT_DESC,
+					true
+				),
+				LineInjector.REMOVE
 			)
 		);
 
 		this.addTransformer(SET_BLOCK_STATE_NAME, SET_BLOCK_STATE_DESC, true,
-			new InitInjector().addInjector
-				(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					null,
-					InitInjector.CAPTURE_THIS.andThen(
-						new InvokeInjector(
-							INIT_NAME,
-							INIT_DESC,
-							false
-						)
-					)
+			new InitInjector(
+				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
+				null,
+				InitInjector.CAPTURE_THIS,
+				new InvokeInjector(
+					INIT_NAME,
+					INIT_DESC,
+					false
 				)
+			)
 		);
 	}
 }

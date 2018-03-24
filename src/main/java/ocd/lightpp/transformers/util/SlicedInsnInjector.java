@@ -26,23 +26,20 @@
 package ocd.lightpp.transformers.util;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.Interpreter;
 
 public interface SlicedInsnInjector
 {
-	void inject(String className, MethodNode node, InsnList slice, AbstractInsnNode insn);
-
-	default SlicedInsnInjector andThen(final SlicedInsnInjector injector)
-	{
-		return new SlicedInsnInjector()
-		{
-			@Override
-			public void inject(final String className, final MethodNode node, final InsnList slice, final AbstractInsnNode insn)
-			{
-				SlicedInsnInjector.this.inject(className, node, slice, insn);
-				injector.inject(className, node, slice, insn);
-			}
-		};
-	}
+	void inject(
+		String className,
+		MethodNode methodNode,
+		AbstractInsnNode sliceStart,
+		AbstractInsnNode sliceEnd,
+		Frame<TrackingValue> frameStart,
+		Frame<TrackingValue> frameEnd,
+		Interpreter<TrackingValue> interpreter
+	) throws MethodTransformerException, AnalyzerException;
 }

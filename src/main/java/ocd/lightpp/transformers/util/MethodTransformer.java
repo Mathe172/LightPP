@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -49,13 +50,15 @@ import ocd.lightpp.transformers.util.MethodSignature.MethodDescriptor;
 public class MethodTransformer
 {
 	private final String internalName;
+	private final Logger logger;
 	private final boolean verify;
 
-	private final Multimap<String, Pair<MethodDescriptor, MethodNodeTransformer>> transformers = ArrayListMultimap.create();
+	private final Multimap<String, Pair<MethodDescriptor, MethodNodeTransformer[]>> transformers = ArrayListMultimap.create();
 
-	public MethodTransformer(final String internalName, final boolean verify)
+	public MethodTransformer(final String internalName, final Logger logger, final boolean verify)
 	{
 		this.internalName = internalName;
+		this.logger = logger;
 		this.verify = verify;
 	}
 
@@ -63,11 +66,11 @@ public class MethodTransformer
 		final String name,
 		final @Nullable String desc,
 		final boolean obfuscated,
-		final MethodNodeTransformer transformer
+		final MethodNodeTransformer... transformers
 	)
 	{
 		final MethodDescriptor md = new MethodDescriptor(this.internalName, name, desc, obfuscated);
-		this.transformers.put(md.name, new ImmutablePair<>(md, transformer));
+		this.transformers.put(md.name, new ImmutablePair<>(md, transformers));
 
 		return this;
 	}
@@ -81,13 +84,13 @@ public class MethodTransformer
 			{
 				final MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 
-				final Collection<Pair<MethodDescriptor, MethodNodeTransformer>> candidates = MethodTransformer.this.transformers.get(name);
+				final Collection<Pair<MethodDescriptor, MethodNodeTransformer[]>> candidates = MethodTransformer.this.transformers.get(name);
 
 				if (!candidates.isEmpty())
 				{
-					List<MethodNodeTransformer> matches = null;
+					List<MethodNodeTransformer[]> matches = null;
 
-					for (final Pair<MethodDescriptor, MethodNodeTransformer> candidate : candidates)
+					for (final Pair<MethodDescriptor, MethodNodeTransformer[]> candidate : candidates)
 					{
 						final MethodDescriptor md = candidate.getKey();
 
@@ -109,7 +112,7 @@ public class MethodTransformer
 		};
 	}
 
-	private MethodVisitor transformMV(final MethodVisitor mv_, final List<MethodNodeTransformer> transformers, final int access, final String name, final String desc, final String signature, final String[] exceptions)
+	private MethodVisitor transformMV(final MethodVisitor mv_, final List<MethodNodeTransformer[]> transformers, final int access, final String name, final String desc, final String signature, final String[] exceptions)
 	{
 		return new MethodNode(Opcodes.ASM5, access, name, desc, signature, exceptions)
 		{
@@ -120,26 +123,25 @@ public class MethodTransformer
 
 				MethodNode methodNode = this;
 
-				for (final MethodNodeTransformer transformer : transformers)
-					methodNode = transformer.transform(MethodTransformer.this.internalName, methodNode);
-
-				if (MethodTransformer.this.verify)
+				try
 				{
-					final Analyzer<BasicValue> analyzer = new Analyzer<>(new BasicVerifier());
+					for (final MethodNodeTransformer[] transformers_ : transformers)
+						for (final MethodNodeTransformer transformer : transformers_)
+							methodNode = transformer.transform(MethodTransformer.this.internalName, methodNode, MethodTransformer.this.logger);
 
-					try
+					if (MethodTransformer.this.verify)
 					{
+						final Analyzer<BasicValue> analyzer = new Analyzer<>(new BasicVerifier());
+
 						analyzer.analyze(MethodTransformer.this.internalName, methodNode);
-					} catch (final AnalyzerException e)
-					{
-						throw new IllegalArgumentException(
-							"Method " +
-								this.name +
-								" of class " +
-								MethodTransformer.this.internalName +
-								" was in an unexpected state, injection failed",
-							e);
 					}
+				} catch (final MethodTransformerException | AnalyzerException e)
+				{
+					final String msg = "Error while modifying method " + this.name + " of class " + MethodTransformer.this.internalName;
+
+					MethodTransformer.this.logger.error(msg, e);
+
+					throw new IllegalArgumentException(msg, e);
 				}
 
 				methodNode.accept(mv_);

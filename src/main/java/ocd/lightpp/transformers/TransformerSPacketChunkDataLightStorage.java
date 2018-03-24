@@ -29,7 +29,7 @@ import org.objectweb.asm.Opcodes;
 
 import ocd.lightpp.transformers.util.InjectionLocator;
 import ocd.lightpp.transformers.util.InvokeInjector;
-import ocd.lightpp.transformers.util.LineReplacer;
+import ocd.lightpp.transformers.util.LineInjector;
 import ocd.lightpp.transformers.util.LocalIndexedVarCapture;
 import ocd.lightpp.transformers.util.LocalTypedVarCapture;
 import ocd.lightpp.transformers.util.MethodClassTransformer;
@@ -57,7 +57,7 @@ public class TransformerSPacketChunkDataLightStorage extends MethodClassTransfor
 		super(CLASS_NAME);
 
 		this.addTransformer(CALC_SIZE_NAME, CALC_SIZE_DESC, true,
-			new LineReplacer().addProcessor(
+			new LineInjector(
 				new MethodMatcher(
 					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 					NameRef.GET_BLOCK_LIGHT_NAME,
@@ -74,51 +74,54 @@ public class TransformerSPacketChunkDataLightStorage extends MethodClassTransfor
 
 					return insn != null && insn.getOpcode() == Opcodes.ISTORE;
 				},
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME).andThen(
-					new InvokeInjector(
-						NameRef.ISERIALIZABLE_NAME,
-						ICALC_SIZE_NAME,
-						ICALC_SIZE_DESC,
-						false,
-						true
-					)
-				),
-				1
-			).addProcessor(
+				1,
+				LineInjector.REMOVE,
+				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new InvokeInjector(
+					NameRef.ISERIALIZABLE_NAME,
+					ICALC_SIZE_NAME,
+					ICALC_SIZE_DESC,
+					false,
+					true
+				)
+			),
+			new LineInjector(
 				new MethodMatcher(
 					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 					NameRef.GET_SKY_LIGHT_NAME,
 					NameRef.GET_SKY_LIGHT_DESC,
 					true
-				)
+				),
+				LineInjector.REMOVE
 			)
 		);
 
 		this.addTransformer(EXTRACT_DATA_NAME, EXTRACT_DATA_DESC, true,
-			new LineReplacer().addProcessor(
+			new LineInjector(
 				new MethodMatcher(
 					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 					NameRef.GET_BLOCK_LIGHT_NAME,
 					NameRef.GET_BLOCK_LIGHT_DESC,
 					true
 				),
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME).andThen(
-					new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1)).andThen(
-					new InvokeInjector(
-						NameRef.ISERIALIZABLE_NAME,
-						WRITE_PACKET_NAME,
-						WRITEPACKET_DESC,
-						false,
-						true
-					)
+				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1),
+				new InvokeInjector(
+					NameRef.ISERIALIZABLE_NAME,
+					WRITE_PACKET_NAME,
+					WRITEPACKET_DESC,
+					false,
+					true
 				)
-			).addProcessor(
+			),
+			new LineInjector(
 				new MethodMatcher(
 					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 					NameRef.GET_SKY_LIGHT_NAME,
 					NameRef.GET_SKY_LIGHT_DESC,
 					true
-				)
+				),
+				LineInjector.REMOVE
 			)
 		);
 	}

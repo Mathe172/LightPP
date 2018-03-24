@@ -27,6 +27,7 @@ package ocd.lightpp.transformers.util;
 
 import javax.annotation.Nullable;
 
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -36,29 +37,31 @@ import net.minecraft.launchwrapper.IClassTransformer;
 public class MethodClassTransformer implements IClassTransformer
 {
 	private final String name;
+
 	public final MethodTransformer transformer;
 
 	public MethodClassTransformer addTransformer(
 		final String name,
 		final @Nullable String desc,
 		final boolean obfuscated,
-		final MethodNodeTransformer transformer
+		final MethodNodeTransformer... transformers
 	)
 	{
-		this.transformer.addTransformer(name, desc, obfuscated, transformer);
+		this.transformer.addTransformer(name, desc, obfuscated, transformers);
 
 		return this;
 	}
 
-	public MethodClassTransformer(final String name)
+	public MethodClassTransformer(final Logger logger, final String name)
 	{
-		this(name, true);
+		this(name, logger, true);
 	}
 
-	public MethodClassTransformer(final String name, final boolean verify)
+	public MethodClassTransformer(final String name, final Logger logger, final boolean verify)
 	{
 		this.name = name;
-		this.transformer = new MethodTransformer(name.replace('.', '/'), verify);
+
+		this.transformer = new MethodTransformer(name.replace('.', '/'), logger, verify);
 	}
 
 	@Override

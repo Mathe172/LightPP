@@ -26,74 +26,32 @@
 package ocd.lightpp.transformers.util;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.Interpreter;
 
 public interface InsnInjector extends SlicedInsnInjector
 {
-	void inject(String className, MethodNode node, AbstractInsnNode insn);
+	void inject(
+		String className,
+		MethodNode methodNode,
+		AbstractInsnNode insn,
+		final Frame<TrackingValue> frame,
+		Interpreter<TrackingValue> interpreter
+	) throws MethodTransformerException, AnalyzerException;
 
 	@Override
-	default void inject(final String className, final MethodNode node, final InsnList slice, final AbstractInsnNode insn)
+	default void inject(
+		final String className,
+		final MethodNode methodNode,
+		final AbstractInsnNode sliceStart,
+		final AbstractInsnNode sliceEnd,
+		final Frame<TrackingValue> frameStart,
+		final Frame<TrackingValue> frameEnd,
+		final Interpreter<TrackingValue> interpreter
+	) throws MethodTransformerException, AnalyzerException
 	{
-		this.inject(className, node, insn);
-	}
-
-	default InsnInjector andThen(final InsnInjector injector)
-	{
-		return new InsnInjector()
-		{
-			@Override
-			public void inject(final String className, final MethodNode node, final InsnList slice, final AbstractInsnNode insn)
-			{
-				InsnInjector.this.inject(className, node, slice, insn);
-				injector.inject(className, node, slice, insn);
-			}
-
-			@Override
-			public void inject(final String className, final MethodNode node, final AbstractInsnNode insn)
-			{
-				InsnInjector.this.inject(className, node, insn);
-				injector.inject(className, node, insn);
-			}
-		};
-	}
-
-	interface Simple extends InsnInjector
-	{
-		void inject(InsnList insns, AbstractInsnNode insn);
-
-		@Override
-		default void inject(final String className, final MethodNode node, final AbstractInsnNode insn)
-		{
-			this.inject(node.instructions, insn);
-		}
-
-		default InsnInjector.Simple andThen(final InsnInjector.Simple injector)
-		{
-			return new InsnInjector.Simple()
-			{
-				@Override
-				public void inject(final String className, final MethodNode node, final InsnList slice, final AbstractInsnNode insn)
-				{
-					InsnInjector.Simple.this.inject(className, node, slice, insn);
-					injector.inject(className, node, slice, insn);
-				}
-
-				@Override
-				public void inject(final String className, final MethodNode node, final AbstractInsnNode insn)
-				{
-					InsnInjector.Simple.this.inject(className, node, insn);
-					injector.inject(className, node, insn);
-				}
-
-				@Override
-				public void inject(final InsnList insns, final AbstractInsnNode insn)
-				{
-					InsnInjector.Simple.this.inject(insns, insn);
-					injector.inject(insns, insn);
-				}
-			};
-		}
+		this.inject(className, methodNode, sliceEnd, frameEnd, interpreter);
 	}
 }

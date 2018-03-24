@@ -25,44 +25,27 @@
 
 package ocd.lightpp.transformers.util;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.tree.analysis.AnalyzerException;
-import org.objectweb.asm.tree.analysis.Frame;
-import org.objectweb.asm.tree.analysis.Interpreter;
 
-public class LocalIndexedVarCapture implements InsnInjector
+public class MethodTransformerException extends Exception
 {
-	private final Type type;
-	private final int index;
+	public final MethodNode method;
+	public final AbstractInsnNode insn;
 
-	public LocalIndexedVarCapture(final Type type, final int index)
+	public MethodTransformerException(final String message, final Throwable cause, final MethodNode method, final AbstractInsnNode insn)
 	{
-		this.type = type;
-		this.index = index;
+		super(message, cause);
+
+		this.method = method;
+		this.insn = insn;
 	}
 
-	public LocalIndexedVarCapture(final String className, final int index)
+	public MethodTransformerException(final String message, final MethodNode method, final AbstractInsnNode insn)
 	{
-		this(Type.getObjectType(className), index);
-	}
+		super(message);
 
-	@Override
-	public void inject(
-		final String className,
-		final MethodNode methodNode,
-		final AbstractInsnNode insn,
-		final Frame<TrackingValue> frame,
-		final Interpreter<TrackingValue> interpreter
-	) throws AnalyzerException
-	{
-		final AbstractInsnNode varInsn = new VarInsnNode(this.type.getOpcode(Opcodes.ILOAD), this.index);
-
-		methodNode.instructions.insertBefore(insn, varInsn);
-
-		frame.execute(varInsn, interpreter);
+		this.method = method;
+		this.insn = insn;
 	}
 }

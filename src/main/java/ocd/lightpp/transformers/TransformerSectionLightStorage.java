@@ -29,7 +29,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import ocd.lightpp.transformers.util.LineReplacer;
+import ocd.lightpp.transformers.util.LineInjector;
 import ocd.lightpp.transformers.util.MethodClassTransformer;
 
 public class TransformerSectionLightStorage extends MethodClassTransformer
@@ -47,8 +47,8 @@ public class TransformerSectionLightStorage extends MethodClassTransformer
 	{
 		super(CLASS_NAME);
 
-		this.addTransformer("<init>", null, false, new LineReplacer().addProcessor
-			(
+		this.addTransformer("<init>", null, false,
+			new LineInjector(
 				(node, insn) -> {
 					if (!(insn instanceof FieldInsnNode))
 						return false;
@@ -72,7 +72,8 @@ public class TransformerSectionLightStorage extends MethodClassTransformer
 					final String blockLightName = remapper.mapFieldName(CLASS_INTERNAL_NAME, BLOCKLIGHT_ARRAY, NIBBLE_ARRAY_DESC);
 
 					return name.equals(skyLightName) || name.equals(blockLightName);
-				}
+				},
+				LineInjector.REMOVE
 			)
 		);
 	}

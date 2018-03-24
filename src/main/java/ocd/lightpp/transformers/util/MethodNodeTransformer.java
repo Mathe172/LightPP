@@ -25,21 +25,11 @@
 
 package ocd.lightpp.transformers.util;
 
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
 
 public interface MethodNodeTransformer
 {
-	MethodNode transform(String className, MethodNode methodNode);
-
-	default MethodNodeTransformer andThen(final MethodNodeTransformer transformer)
-	{
-		return new MethodNodeTransformer()
-		{
-			@Override
-			public MethodNode transform(final String className, final MethodNode methodNode)
-			{
-				return transformer.transform(className, MethodNodeTransformer.this.transform(className, methodNode));
-			}
-		};
-	}
+	MethodNode transform(String className, MethodNode methodNode, Logger logger) throws MethodTransformerException, AnalyzerException;
 }
