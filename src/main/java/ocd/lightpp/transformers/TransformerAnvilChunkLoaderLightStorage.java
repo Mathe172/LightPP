@@ -25,95 +25,89 @@
 
 package ocd.lightpp.transformers;
 
-import ocd.asmutil.ConstantMatcher;
-import ocd.asmutil.InitInjector;
-import ocd.asmutil.InitInjector.ArgLoader;
-import ocd.asmutil.InvokeInjector;
-import ocd.asmutil.LineInjector;
-import ocd.asmutil.LocalTypedVarCapture;
-import ocd.asmutil.MethodClassTransformer;
-import ocd.asmutil.MethodMatcher;
+import ocd.asmutil.MethodTransformer;
+import ocd.asmutil.injectors.InvokeInjector;
+import ocd.asmutil.injectors.LocalTypedVarCapture;
+import ocd.asmutil.matchers.ConstantMatcher;
+import ocd.asmutil.matchers.MethodMatcher;
+import ocd.asmutil.transformers.InitInjector;
+import ocd.asmutil.transformers.InitInjector.ArgLoader;
+import ocd.asmutil.transformers.LineInjector;
 import ocd.lightpp.transformers.util.NameRef;
+import ocd.lightpp.transformers.util.ObfuscationHelper;
 
-public class TransformerAnvilChunkLoaderLightStorage extends MethodClassTransformer
+public class TransformerAnvilChunkLoaderLightStorage extends MethodTransformer.Named
 {
 	private static final String CLASS_NAME = "net.minecraft.world.chunk.storage.AnvilChunkLoader";
 
 	private static final String NBT_COMPOUND_NAME = "net/minecraft/nbt/NBTTagCompound";
 
-	private static final String WORLD_LIGHT_STORAGE_INITIALIZER_NAME = "ocd/lightpp/impl/IWorldLightStorageInitializer";
-	private static final String INIT_EMPTY_NAME = "initEmptyLightStorage";
-	private static final String INIT_EMPTY_DESC = "(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;)V";
+	private static final InvokeInjector.MethodDescriptor WORLD_LIGHT_STORAGE_INIT = new InvokeInjector.MethodDescriptor(
+		"ocd/lightpp/impl/IWorldLightStorageInitializer",
+		"initEmptyLightStorage",
+		"(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;)V",
+		true
+	);
 
-	private static final String READ_NAME = "func_75823_a";
-	private static final String READ_DESC = "(Lnet/minecraft/world/World;Lnet/minecraft/nbt/NBTTagCompound;)Lnet/minecraft/world/chunk/Chunk;";
-	private static final String WRITE_NAME = "func_75820_a";
-	private static final String WRITE_DESC = "(Lnet/minecraft/world/chunk/Chunk;Lnet/minecraft/world/World;Lnet/minecraft/nbt/NBTTagCompound;)V";
+	private static final MethodMatcher.MethodDescriptor READ_MATCHER = ObfuscationHelper.createMethodMatcher(
+		CLASS_NAME,
+		"func_75823_a",
+		"(Lnet/minecraft/world/World;Lnet/minecraft/nbt/NBTTagCompound;)Lnet/minecraft/world/chunk/Chunk;"
+	);
 
-	private static final String DESERIALIZE_NAME = "deserialize";
-	private static final String DESERIALIZE_DESC = "(Lnet/minecraft/nbt/NBTTagCompound;)V";
-	private static final String SERIALIZE_NAME = "serialize";
-	private static final String SERIALIZE_DESC = "(Lnet/minecraft/nbt/NBTTagCompound;)V";
+	private static final MethodMatcher.MethodDescriptor WRITE_MATCHER = ObfuscationHelper.createMethodMatcher(
+		CLASS_NAME,
+		"func_75820_a",
+		"(Lnet/minecraft/world/chunk/Chunk;Lnet/minecraft/world/World;Lnet/minecraft/nbt/NBTTagCompound;)V"
+	);
+
+	private static final InvokeInjector.MethodDescriptor DESERIALIZE = new InvokeInjector.MethodDescriptor(
+		NameRef.ISERIALIZABLE_NAME,
+		"deserialize",
+		"(Lnet/minecraft/nbt/NBTTagCompound;)V",
+		true
+	);
+
+	private static final InvokeInjector.MethodDescriptor SERIALIZE = new InvokeInjector.MethodDescriptor(
+		NameRef.ISERIALIZABLE_NAME,
+		"serialize",
+		"(Lnet/minecraft/nbt/NBTTagCompound;)V",
+		true
+	);
 
 	public TransformerAnvilChunkLoaderLightStorage()
 	{
 		super(CLASS_NAME);
 
-		this.addTransformer(READ_NAME, READ_DESC, true,
+		this.addTransformer(
+			READ_MATCHER,
 			new InitInjector(
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
 				new ArgLoader(1),
-				new InvokeInjector(
-					WORLD_LIGHT_STORAGE_INITIALIZER_NAME,
-					INIT_EMPTY_NAME,
-					INIT_EMPTY_DESC,
-					false,
-					true
-				)
+				new InvokeInjector(WORLD_LIGHT_STORAGE_INIT)
 			),
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.SET_BLOCK_LIGHT_NAME,
-					NameRef.SET_BLOCK_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.SET_BLOCK_LIGHT_MATCHER),
 				LineInjector.REMOVE,
 				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
 				new LocalTypedVarCapture(NBT_COMPOUND_NAME),
-				new InvokeInjector(
-					NameRef.ISERIALIZABLE_NAME,
-					DESERIALIZE_NAME,
-					DESERIALIZE_DESC,
-					false,
-					true
-				)
+				new InvokeInjector(DESERIALIZE)
 			),
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.SET_SKY_LIGHT_NAME,
-					NameRef.SET_SKY_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.SET_SKY_LIGHT_MATCHER),
 				LineInjector.REMOVE
 			)
 		);
 
-		this.addTransformer(WRITE_NAME, WRITE_DESC, true,
+		this.addTransformer(
+			WRITE_MATCHER,
 			new LineInjector(
 				new ConstantMatcher(NameRef.BLOCKLIGHT_NAME),
 				LineInjector.REMOVE,
 				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
 				new LocalTypedVarCapture(NBT_COMPOUND_NAME),
-				new InvokeInjector(
-					NameRef.ISERIALIZABLE_NAME,
-					SERIALIZE_NAME,
-					SERIALIZE_DESC,
-					false,
-					true
-				)
+				new InvokeInjector(SERIALIZE)
 			),
 			new LineInjector(
 				new ConstantMatcher(NameRef.SKYLIGHT_NAME),

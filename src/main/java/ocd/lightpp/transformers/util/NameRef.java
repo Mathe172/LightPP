@@ -25,6 +25,8 @@
 
 package ocd.lightpp.transformers.util;
 
+import ocd.asmutil.matchers.MethodMatcher;
+
 public class NameRef
 {
 	public static final String BLOCKLIGHT_NAME = "BlockLight";
@@ -32,14 +34,30 @@ public class NameRef
 	public static final String LIGHT_DATA_NAME = "LightData";
 
 	public static final String EXTENDED_BLOCK_STORAGE_NAME = "net/minecraft/world/chunk/storage/ExtendedBlockStorage";
-	public static final String GET_BLOCK_LIGHT_NAME = "func_76661_k";
-	public static final String GET_BLOCK_LIGHT_DESC = "()Lnet/minecraft/world/chunk/NibbleArray;";
-	public static final String GET_SKY_LIGHT_NAME = "func_76671_l";
-	public static final String GET_SKY_LIGHT_DESC = "()Lnet/minecraft/world/chunk/NibbleArray;";
-	public static final String SET_BLOCK_LIGHT_NAME = "func_76659_c";
-	public static final String SET_BLOCK_LIGHT_DESC = "(Lnet/minecraft/world/chunk/NibbleArray;)V";
-	public static final String SET_SKY_LIGHT_NAME = "func_76666_d";
-	public static final String SET_SKY_LIGHT_DESC = "(Lnet/minecraft/world/chunk/NibbleArray;)V";
+
+	public static final MethodMatcher.MethodDescriptor GET_BLOCK_LIGHT_MATCHER = ObfuscationHelper.createMethodMatcher(
+		EXTENDED_BLOCK_STORAGE_NAME,
+		"func_76661_k",
+		"()Lnet/minecraft/world/chunk/NibbleArray;"
+	);
+
+	public static final MethodMatcher.MethodDescriptor GET_SKY_LIGHT_MATCHER = ObfuscationHelper.createMethodMatcher(
+		EXTENDED_BLOCK_STORAGE_NAME,
+		"func_76671_l",
+		"()Lnet/minecraft/world/chunk/NibbleArray;"
+	);
+
+	public static final MethodMatcher.MethodDescriptor SET_BLOCK_LIGHT_MATCHER = ObfuscationHelper.createMethodMatcher(
+		EXTENDED_BLOCK_STORAGE_NAME,
+		"func_76659_c",
+		"(Lnet/minecraft/world/chunk/NibbleArray;)V"
+	);
+
+	public static final MethodMatcher.MethodDescriptor SET_SKY_LIGHT_MATCHER = ObfuscationHelper.createMethodMatcher(
+		EXTENDED_BLOCK_STORAGE_NAME,
+		"func_76666_d",
+		"(Lnet/minecraft/world/chunk/NibbleArray;)V"
+	);
 
 	public static final String PACKET_BUFFER_NAME = "net/minecraft/network/PacketBuffer";
 

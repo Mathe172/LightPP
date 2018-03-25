@@ -24,6 +24,9 @@
 
 package ocd.lightpp;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.minecraftforge.fml.common.Mod;
 
 @Mod(
@@ -36,6 +39,8 @@ public class LightPP
 	public static final String MOD_ID = "lightpp";
 	public static final String MOD_NAME = "Light++";
 	public static final String VERSION = "@@MOD_VERSION@@";
+
+	public static final Logger logger = LogManager.getLogger(MOD_NAME);
 
 	/**
 	 * This is the instance of your mod as created by Forge. It will never be null.

@@ -34,22 +34,19 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.Name;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.SortingIndex;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 
-@TransformerExclusions({"ocd.lightpp.mixin", "ocd.lightpp.transformers"})
+@TransformerExclusions({"ocd.lightpp.mixin", "ocd.lightpp.transformers", "ocd.asmutil"})
 @MCVersion("1.12")
 @SortingIndex(1000)
 @Name("Light++")
 public class LightPPLoadingPlugin implements IFMLLoadingPlugin
 {
+	public static final String DEBUG_FLAG = "ocd.lightpp.debug";
+	public static final boolean verify = Boolean.parseBoolean(System.getProperty(DEBUG_FLAG));
+
 	@Override
 	public String[] getASMTransformerClass()
 	{
-		return new String[]
-			{
-				"ocd.lightpp.transformers.TransformerSectionLightStorage",
-				"ocd.lightpp.transformers.TransformerChunkLightStorage",
-				"ocd.lightpp.transformers.TransformerAnvilChunkLoaderLightStorage",
-				"ocd.lightpp.transformers.TransformerSPacketChunkDataLightStorage"
-			};
+		return new String[] {"ocd.lightpp.transformers.DispatchTransformer"};
 	}
 
 	@Override

@@ -28,42 +28,53 @@ package ocd.lightpp.transformers;
 import org.objectweb.asm.Opcodes;
 
 import ocd.asmutil.InjectionLocator;
-import ocd.asmutil.InvokeInjector;
-import ocd.asmutil.LineInjector;
-import ocd.asmutil.LocalIndexedVarCapture;
-import ocd.asmutil.LocalTypedVarCapture;
-import ocd.asmutil.MethodClassTransformer;
-import ocd.asmutil.MethodMatcher;
+import ocd.asmutil.MethodTransformer;
+import ocd.asmutil.injectors.InvokeInjector;
+import ocd.asmutil.injectors.LocalIndexedVarCapture;
+import ocd.asmutil.injectors.LocalTypedVarCapture;
+import ocd.asmutil.matchers.MethodMatcher;
+import ocd.asmutil.transformers.LineInjector;
 import ocd.lightpp.transformers.util.NameRef;
+import ocd.lightpp.transformers.util.ObfuscationHelper;
 
-public class TransformerSPacketChunkDataLightStorage extends MethodClassTransformer
+public class TransformerSPacketChunkDataLightStorage extends MethodTransformer.Named
 {
 	private static final String CLASS_NAME = "net.minecraft.network.play.server.SPacketChunkData";
 
-	private static final String CALC_SIZE_NAME = "func_189556_a";
-	private static final String CALC_SIZE_DESC = "(Lnet/minecraft/world/chunk/Chunk;ZI)I";
+	private static final MethodMatcher.MethodDescriptor CALC_SIZE_MATCHER = ObfuscationHelper.createMethodMatcher(
+		CLASS_NAME,
+		"func_189556_a",
+		"(Lnet/minecraft/world/chunk/Chunk;ZI)I"
+	);
 
-	private static final String EXTRACT_DATA_NAME = "func_189555_a";
-	private static final String EXTRACT_DATA_DESC = "(Lnet/minecraft/network/PacketBuffer;Lnet/minecraft/world/chunk/Chunk;ZI)I";
+	private static final MethodMatcher.MethodDescriptor EXTRACT_DATA_MATCHER = ObfuscationHelper.createMethodMatcher(
+		CLASS_NAME,
+		"func_189555_a",
+		"(Lnet/minecraft/network/PacketBuffer;Lnet/minecraft/world/chunk/Chunk;ZI)I"
+	);
 
-	private static final String ICALC_SIZE_NAME = "calcPacketSize";
-	private static final String ICALC_SIZE_DESC = "()I";
+	private static final InvokeInjector.MethodDescriptor CALC_SIZE = new InvokeInjector.MethodDescriptor(
+		NameRef.ISERIALIZABLE_NAME,
+		"calcPacketSize",
+		"()I",
+		true
+	);
 
-	private static final String WRITE_PACKET_NAME = "writePacketData";
-	private static final String WRITEPACKET_DESC = "(Lnet/minecraft/network/PacketBuffer;)V";
+	private static final InvokeInjector.MethodDescriptor WRITE_PACKET_DATA = new InvokeInjector.MethodDescriptor(
+		NameRef.ISERIALIZABLE_NAME,
+		"writePacketData",
+		"(Lnet/minecraft/network/PacketBuffer;)V",
+		true
+	);
 
 	public TransformerSPacketChunkDataLightStorage()
 	{
 		super(CLASS_NAME);
 
-		this.addTransformer(CALC_SIZE_NAME, CALC_SIZE_DESC, true,
+		this.addTransformer(
+			CALC_SIZE_MATCHER,
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.GET_BLOCK_LIGHT_NAME,
-					NameRef.GET_BLOCK_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.GET_BLOCK_LIGHT_MATCHER),
 				(InjectionLocator.Simple) insn -> {
 					insn = insn.getNext();
 
@@ -77,50 +88,24 @@ public class TransformerSPacketChunkDataLightStorage extends MethodClassTransfor
 				1,
 				LineInjector.REMOVE,
 				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
-				new InvokeInjector(
-					NameRef.ISERIALIZABLE_NAME,
-					ICALC_SIZE_NAME,
-					ICALC_SIZE_DESC,
-					false,
-					true
-				)
+				new InvokeInjector(CALC_SIZE)
 			),
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.GET_SKY_LIGHT_NAME,
-					NameRef.GET_SKY_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.SET_SKY_LIGHT_MATCHER),
 				LineInjector.REMOVE
 			)
 		);
 
-		this.addTransformer(EXTRACT_DATA_NAME, EXTRACT_DATA_DESC, true,
+		this.addTransformer(
+			EXTRACT_DATA_MATCHER,
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.GET_BLOCK_LIGHT_NAME,
-					NameRef.GET_BLOCK_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.GET_BLOCK_LIGHT_MATCHER),
 				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
 				new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1),
-				new InvokeInjector(
-					NameRef.ISERIALIZABLE_NAME,
-					WRITE_PACKET_NAME,
-					WRITEPACKET_DESC,
-					false,
-					true
-				)
+				new InvokeInjector(WRITE_PACKET_DATA)
 			),
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.GET_SKY_LIGHT_NAME,
-					NameRef.GET_SKY_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.SET_SKY_LIGHT_MATCHER),
 				LineInjector.REMOVE
 			)
 		);

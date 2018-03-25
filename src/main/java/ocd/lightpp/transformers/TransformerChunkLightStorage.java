@@ -27,103 +27,102 @@ package ocd.lightpp.transformers;
 
 import org.objectweb.asm.Type;
 
-import ocd.asmutil.InitInjector;
-import ocd.asmutil.InvokeInjector;
-import ocd.asmutil.LineInjector;
-import ocd.asmutil.LocalIndexedVarCapture;
-import ocd.asmutil.LocalTypedVarCapture;
-import ocd.asmutil.MethodClassTransformer;
-import ocd.asmutil.MethodMatcher;
+import ocd.asmutil.MethodTransformer;
+import ocd.asmutil.injectors.InvokeInjector;
+import ocd.asmutil.injectors.LocalIndexedVarCapture;
+import ocd.asmutil.injectors.LocalTypedVarCapture;
+import ocd.asmutil.matchers.MethodMatcher;
+import ocd.asmutil.transformers.InitInjector;
+import ocd.asmutil.transformers.LineInjector;
 import ocd.lightpp.transformers.util.NameRef;
+import ocd.lightpp.transformers.util.ObfuscationHelper;
 
-public class TransformerChunkLightStorage extends MethodClassTransformer
+public class TransformerChunkLightStorage extends MethodTransformer.Named
 {
 	private static final String CLASS_NAME = "net.minecraft.world.chunk.Chunk";
 
-	private static final String INIT_EMPTY_NAME = "initEmptyLightStorage";
-	private static final String INIT_EMPTY_DESC = "(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;)V";
-	private static final String INIT_NAME = "initLightStorage";
-	private static final String INIT_DESC = "(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;)V";
-	private static final String INIT_READ_NAME = "initLightStorageRead";
-	private static final String INIT_READ_DESC = "(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;I)V";
+	private static final InvokeInjector.MethodDescriptor INIT_EMPTY = new InvokeInjector.MethodDescriptor(
+		"initEmptyLightStorage",
+		"(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;)V"
+	);
 
-	private static final String INIT_PRIMER_DESC = "(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/ChunkPrimer;II)V";
-	private static final String READ_NAME = "func_186033_a";
-	private static final String READ_DESC = "(Lnet/minecraft/network/PacketBuffer;IZ)V";
-	private static final String SET_BLOCK_STATE_NAME = "func_177436_a";
-	private static final String SET_BLOCK_STATE_DESC = "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/block/state/IBlockState;";
+	private static final InvokeInjector.MethodDescriptor INIT = new InvokeInjector.MethodDescriptor(
+		"initLightStorage",
+		"(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;)V"
+	);
 
-	private static final String READ_PACKET_NAME = "readPacketData";
-	private static final String READ_PACKET_DESC = "(Lnet/minecraft/network/PacketBuffer;)V";
+	private static final InvokeInjector.MethodDescriptor INIT_READ = new InvokeInjector.MethodDescriptor(
+		"initLightStorageRead",
+		"(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;I)V"
+	);
+
+	private static final InvokeInjector.MethodDescriptor READ_PACKET = new InvokeInjector.MethodDescriptor(
+		NameRef.ISERIALIZABLE_NAME,
+		"readPacketData",
+		"(Lnet/minecraft/network/PacketBuffer;)V",
+		true
+	);
+
+	private static final MethodMatcher.MethodDescriptor INIT_PRIMER_MATCHER = new MethodMatcher.MethodDescriptor(
+		"<init>",
+		"(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/ChunkPrimer;II)V"
+	);
+
+	private static final MethodMatcher.MethodDescriptor READ_MATCHER = ObfuscationHelper.createMethodMatcher(
+		CLASS_NAME,
+		"func_186033_a",
+		"(Lnet/minecraft/network/PacketBuffer;IZ)V"
+	);
+
+	private static final MethodMatcher.MethodDescriptor SET_BLOCK_STATE_MATCHER = ObfuscationHelper.createMethodMatcher(
+		CLASS_NAME,
+		"func_177436_a",
+		"(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/block/state/IBlockState;"
+	);
 
 	public TransformerChunkLightStorage()
 	{
 		super(CLASS_NAME);
 
-		this.addTransformer("<init>", INIT_PRIMER_DESC, false,
+		this.addTransformer(
+			INIT_PRIMER_MATCHER,
 			new InitInjector(
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
 				InitInjector.CAPTURE_THIS,
-				new InvokeInjector(
-					INIT_EMPTY_NAME,
-					INIT_EMPTY_DESC,
-					false
-				)
+				new InvokeInjector(INIT_EMPTY)
 			)
 		);
 
-		this.addTransformer(READ_NAME, READ_DESC, true,
+		this.addTransformer(
+			READ_MATCHER,
 			new InitInjector(
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
 				InitInjector.CAPTURE_THIS,
 				new LocalIndexedVarCapture(Type.INT_TYPE, 2),
-				new InvokeInjector(
-					INIT_READ_NAME,
-					INIT_READ_DESC,
-					false
-				)
+				new InvokeInjector(INIT_READ)
 			),
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.GET_BLOCK_LIGHT_NAME,
-					NameRef.GET_BLOCK_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.GET_BLOCK_LIGHT_MATCHER),
 				LineInjector.REMOVE,
 				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
 				new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1),
-				new InvokeInjector(
-					NameRef.ISERIALIZABLE_NAME,
-					READ_PACKET_NAME,
-					READ_PACKET_DESC,
-					false,
-					true
-				)
+				new InvokeInjector(READ_PACKET)
 			),
 			new LineInjector(
-				new MethodMatcher(
-					NameRef.EXTENDED_BLOCK_STORAGE_NAME,
-					NameRef.GET_SKY_LIGHT_NAME,
-					NameRef.GET_SKY_LIGHT_DESC,
-					true
-				),
+				new MethodMatcher(NameRef.GET_SKY_LIGHT_MATCHER),
 				LineInjector.REMOVE
 			)
 		);
 
-		this.addTransformer(SET_BLOCK_STATE_NAME, SET_BLOCK_STATE_DESC, true,
+		this.addTransformer(
+			SET_BLOCK_STATE_MATCHER,
 			new InitInjector(
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
 				InitInjector.CAPTURE_THIS,
-				new InvokeInjector(
-					INIT_NAME,
-					INIT_DESC,
-					false
-				)
+				new InvokeInjector(INIT)
 			)
 		);
 	}
