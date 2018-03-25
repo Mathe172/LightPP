@@ -41,7 +41,7 @@ import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.api.vanilla.world.ISerializable;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
-import ocd.lightpp.util.NameRef;
+import ocd.lightpp.transformers.util.NameRef;
 
 @Mixin(ExtendedBlockStorage.class)
 public abstract class MixinSectionLightStorage implements IVanillaLightStorageHolder, ISerializable

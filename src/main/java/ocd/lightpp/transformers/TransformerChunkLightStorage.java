@@ -27,14 +27,14 @@ package ocd.lightpp.transformers;
 
 import org.objectweb.asm.Type;
 
-import ocd.lightpp.transformers.util.InitInjector;
-import ocd.lightpp.transformers.util.InvokeInjector;
-import ocd.lightpp.transformers.util.LineInjector;
-import ocd.lightpp.transformers.util.LocalIndexedVarCapture;
-import ocd.lightpp.transformers.util.LocalTypedVarCapture;
-import ocd.lightpp.transformers.util.MethodClassTransformer;
-import ocd.lightpp.transformers.util.MethodMatcher;
-import ocd.lightpp.util.NameRef;
+import ocd.asmutil.InitInjector;
+import ocd.asmutil.InvokeInjector;
+import ocd.asmutil.LineInjector;
+import ocd.asmutil.LocalIndexedVarCapture;
+import ocd.asmutil.LocalTypedVarCapture;
+import ocd.asmutil.MethodClassTransformer;
+import ocd.asmutil.MethodMatcher;
+import ocd.lightpp.transformers.util.NameRef;
 
 public class TransformerChunkLightStorage extends MethodClassTransformer
 {

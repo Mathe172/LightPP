@@ -23,23 +23,4 @@
  *
  */
 
-package ocd.lightpp.transformers.util;
-
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-
-public interface InjectionLocator
-{
-	boolean test(MethodNode node, AbstractInsnNode insn);
-
-	interface Simple extends InjectionLocator
-	{
-		boolean test(AbstractInsnNode insn);
-
-		@Override
-		default boolean test(final MethodNode node, final AbstractInsnNode insn)
-		{
-			return this.test(insn);
-		}
-	}
-}
+include ':ASMUtils'

@@ -25,27 +25,23 @@
 
 package ocd.lightpp.transformers.util;
 
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-
-public class MethodTransformerException extends Exception
+public class NameRef
 {
-	public final MethodNode method;
-	public final AbstractInsnNode insn;
+	public static final String BLOCKLIGHT_NAME = "BlockLight";
+	public static final String SKYLIGHT_NAME = "SkyLight";
+	public static final String LIGHT_DATA_NAME = "LightData";
 
-	public MethodTransformerException(final String message, final Throwable cause, final MethodNode method, final AbstractInsnNode insn)
-	{
-		super(message, cause);
+	public static final String EXTENDED_BLOCK_STORAGE_NAME = "net/minecraft/world/chunk/storage/ExtendedBlockStorage";
+	public static final String GET_BLOCK_LIGHT_NAME = "func_76661_k";
+	public static final String GET_BLOCK_LIGHT_DESC = "()Lnet/minecraft/world/chunk/NibbleArray;";
+	public static final String GET_SKY_LIGHT_NAME = "func_76671_l";
+	public static final String GET_SKY_LIGHT_DESC = "()Lnet/minecraft/world/chunk/NibbleArray;";
+	public static final String SET_BLOCK_LIGHT_NAME = "func_76659_c";
+	public static final String SET_BLOCK_LIGHT_DESC = "(Lnet/minecraft/world/chunk/NibbleArray;)V";
+	public static final String SET_SKY_LIGHT_NAME = "func_76666_d";
+	public static final String SET_SKY_LIGHT_DESC = "(Lnet/minecraft/world/chunk/NibbleArray;)V";
 
-		this.method = method;
-		this.insn = insn;
-	}
+	public static final String PACKET_BUFFER_NAME = "net/minecraft/network/PacketBuffer";
 
-	public MethodTransformerException(final String message, final MethodNode method, final AbstractInsnNode insn)
-	{
-		super(message);
-
-		this.method = method;
-		this.insn = insn;
-	}
+	public static final String ISERIALIZABLE_NAME = "ocd/lightpp/api/vanilla/world/ISerializable";
 }

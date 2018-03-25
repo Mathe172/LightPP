@@ -74,10 +74,13 @@ repositories {
 Dependency mixinDep
 
 dependencies {
-	mixinDep = compile('org.spongepowered:mixin:0.7.5-SNAPSHOT')
-			{
-				transitive = false
-			}
+	mixinDep = compile('org.spongepowered:mixin:0.7.5-SNAPSHOT') {
+		transitive = false
+	}
+
+	compile(project(':ASMUtils')) {
+		transitive = false
+	}
 }
 
 processResources {

@@ -29,8 +29,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import ocd.lightpp.transformers.util.LineInjector;
-import ocd.lightpp.transformers.util.MethodClassTransformer;
+import ocd.asmutil.LineInjector;
+import ocd.asmutil.MethodClassTransformer;
 
 public class TransformerSectionLightStorage extends MethodClassTransformer
 {

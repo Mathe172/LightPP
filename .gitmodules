@@ -1,0 +1,3 @@
+[submodule "ASMUtils"]
+	path = ASMUtils
+	url = git://github.com/OverengineeredCodingDuo/ASMUtils.git
