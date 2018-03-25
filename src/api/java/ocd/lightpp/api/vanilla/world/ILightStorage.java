@@ -30,7 +30,6 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
-import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 
 public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider.Cached<D, LI, WI, C>
 {
@@ -89,23 +88,5 @@ public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider.Cached<D,
 	default void setStorage(final EnumSkyBlock lightType, final @Nullable T storage)
 	{
 		throw new UnsupportedOperationException();
-	}
-
-	interface Positioned<D, LI>
-	{
-		int getLight(final D desc);
-
-		ILightIterator<D> getLightIterator();
-
-		LI getInterface();
-
-		interface Writeable<D, LI> extends Positioned<D, LI>
-		{
-			void set(D desc, int val);
-
-			default void notifyLightSet(final D desc)
-			{
-			}
-		}
 	}
 }

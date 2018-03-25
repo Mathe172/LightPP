@@ -30,7 +30,7 @@ import org.objectweb.asm.Type;
 import ocd.asmutil.MethodTransformer;
 import ocd.asmutil.injectors.InvokeInjector;
 import ocd.asmutil.injectors.LocalIndexedVarCapture;
-import ocd.asmutil.injectors.LocalTypedVarCapture;
+import ocd.asmutil.injectors.LocalParameterVarCapture;
 import ocd.asmutil.matchers.MethodMatcher;
 import ocd.asmutil.transformers.InitInjector;
 import ocd.asmutil.transformers.LineInjector;
@@ -106,7 +106,7 @@ public class TransformerChunkLightStorage extends MethodTransformer.Named
 			new LineInjector(
 				new MethodMatcher(NameRef.GET_BLOCK_LIGHT_MATCHER),
 				LineInjector.REMOVE,
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalParameterVarCapture(0, NameRef.GET_BLOCK_LIGHT_MATCHER),
 				new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1),
 				new InvokeInjector(READ_PACKET)
 			),

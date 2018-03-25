@@ -26,10 +26,21 @@
 package ocd.lightpp.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
+import ocd.lightpp.api.vanilla.world.ICleanable;
 
 @Mixin(AnvilChunkLoader.class)
 public class MixinAnvilChunkLoader
 {
+	@Inject(method = "saveChunk", at = @At("HEAD"))
+	private void cleanup(final World worldIn, final Chunk chunkIn, final CallbackInfo ci)
+	{
+		((ICleanable) chunkIn).cleanup();
+	}
 }

@@ -22,47 +22,34 @@
  * SOFTWARE.
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.lighting.vanilla.light;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import net.minecraft.world.EnumSkyBlock;
+import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 
-public interface ILightProvider<D, LI, WI>
+public class VanillaLightDescriptor implements IVanillaLightDescriptor
 {
-	Positioned<D, LI> bind(BlockPos pos);
+	private EnumSkyBlock skyBlock;
 
-	WI getStorageInterface(BlockPos pos);
-
-	interface Cached<D, LI, WI, C> extends ILightProvider<D, LI, WI>
+	public VanillaLightDescriptor()
 	{
-		Positioned<D, LI> bind(BlockPos pos, C container);
+		this(EnumSkyBlock.BLOCK);
 	}
 
-	interface Positioned<D, LI>
+	public VanillaLightDescriptor(final EnumSkyBlock skyBlock)
 	{
-		int getLight(final D desc);
 
-		ILightIterator<D> getLightIterator();
+		this.skyBlock = skyBlock;
+	}
 
-		LI getInterface();
+	@Override
+	public EnumSkyBlock getSkyBlock()
+	{
+		return this.skyBlock;
+	}
 
-		interface Writeable<D, LI> extends Positioned<D, LI>
-		{
-			void set(D desc, int val);
-
-			/**
-			 * Called after the last {@link #set} of type D in a bulk operation
-			 */
-			default void notifyLightSet(final D desc)
-			{
-			}
-
-			/**
-			 * Called after the last {@link #set} in a bulk operation
-			 */
-			default void notifyLightSet()
-			{
-			}
-		}
+	public void setSkyBlock(final EnumSkyBlock skyBlock)
+	{
+		this.skyBlock = skyBlock;
 	}
 }

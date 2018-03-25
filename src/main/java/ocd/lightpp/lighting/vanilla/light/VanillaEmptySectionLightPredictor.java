@@ -34,7 +34,7 @@ import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
-import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
+import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.lighting.vanilla.light.VanillaEmptySectionLightPredictor.Container;
 
 public class VanillaEmptySectionLightPredictor

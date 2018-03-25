@@ -27,6 +27,7 @@ package ocd.lightpp.transformers;
 
 import ocd.asmutil.MethodTransformer;
 import ocd.asmutil.injectors.InvokeInjector;
+import ocd.asmutil.injectors.LocalParameterVarCapture;
 import ocd.asmutil.injectors.LocalTypedVarCapture;
 import ocd.asmutil.matchers.ConstantMatcher;
 import ocd.asmutil.matchers.MethodMatcher;
@@ -90,7 +91,7 @@ public class TransformerAnvilChunkLoaderLightStorage extends MethodTransformer.N
 			new LineInjector(
 				new MethodMatcher(NameRef.SET_BLOCK_LIGHT_MATCHER),
 				LineInjector.REMOVE,
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalParameterVarCapture(0, NameRef.SET_BLOCK_LIGHT_MATCHER),
 				new LocalTypedVarCapture(NBT_COMPOUND_NAME),
 				new InvokeInjector(DESERIALIZE)
 			),
@@ -105,7 +106,7 @@ public class TransformerAnvilChunkLoaderLightStorage extends MethodTransformer.N
 			new LineInjector(
 				new ConstantMatcher(NameRef.BLOCKLIGHT_NAME),
 				LineInjector.REMOVE,
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalParameterVarCapture(0, NameRef.GET_BLOCK_LIGHT_MATCHER),
 				new LocalTypedVarCapture(NBT_COMPOUND_NAME),
 				new InvokeInjector(SERIALIZE)
 			),

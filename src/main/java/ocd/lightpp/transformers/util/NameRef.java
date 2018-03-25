@@ -25,6 +25,9 @@
 
 package ocd.lightpp.transformers.util;
 
+import org.objectweb.asm.Opcodes;
+
+import ocd.asmutil.matchers.FieldMatcher;
 import ocd.asmutil.matchers.MethodMatcher;
 
 public class NameRef
@@ -62,4 +65,14 @@ public class NameRef
 	public static final String PACKET_BUFFER_NAME = "net/minecraft/network/PacketBuffer";
 
 	public static final String ISERIALIZABLE_NAME = "ocd/lightpp/api/vanilla/world/ISerializable";
+
+	public static final String CHUNK_NAME = "net/minecraft/world/chunk/Chunk";
+
+	public static final FieldMatcher.FieldDescriptor NULL_BLOCK_STORAGE_MATCHER = ObfuscationHelper.createFieldMatcher(
+		CHUNK_NAME,
+		"field_186036_a",
+		"L" + EXTENDED_BLOCK_STORAGE_NAME + ";"
+	);
+
+	public static final FieldMatcher GET_NULL_BLOCK_STORAGE_MATCHER = new FieldMatcher(Opcodes.GETSTATIC, NULL_BLOCK_STORAGE_MATCHER);
 }

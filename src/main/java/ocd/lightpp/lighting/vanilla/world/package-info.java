@@ -20,49 +20,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.api.vanilla.world;
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+package ocd.lightpp.lighting.vanilla.world;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import javax.annotation.ParametersAreNonnullByDefault;
 
-public interface ILightProvider<D, LI, WI>
-{
-	Positioned<D, LI> bind(BlockPos pos);
-
-	WI getStorageInterface(BlockPos pos);
-
-	interface Cached<D, LI, WI, C> extends ILightProvider<D, LI, WI>
-	{
-		Positioned<D, LI> bind(BlockPos pos, C container);
-	}
-
-	interface Positioned<D, LI>
-	{
-		int getLight(final D desc);
-
-		ILightIterator<D> getLightIterator();
-
-		LI getInterface();
-
-		interface Writeable<D, LI> extends Positioned<D, LI>
-		{
-			void set(D desc, int val);
-
-			/**
-			 * Called after the last {@link #set} of type D in a bulk operation
-			 */
-			default void notifyLightSet(final D desc)
-			{
-			}
-
-			/**
-			 * Called after the last {@link #set} in a bulk operation
-			 */
-			default void notifyLightSet()
-			{
-			}
-		}
-	}
-}
+import mcp.MethodsReturnNonnullByDefault;

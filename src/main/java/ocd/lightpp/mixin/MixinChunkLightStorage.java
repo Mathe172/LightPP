@@ -39,17 +39,16 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
-import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
-import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.world.ICleanable;
 import ocd.lightpp.api.vanilla.world.IVanillaChunkLightProvider;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldLightProvider;
 import ocd.lightpp.impl.IChunkLightStorageInitializer;
-import ocd.lightpp.impl.IWorldLightStorageInitializer;
+import ocd.lightpp.impl.ISectionEmpty;
 
 @Mixin(Chunk.class)
-public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvider, IChunkLightStorageInitializer
+public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvider, IChunkLightStorageInitializer, ICleanable
 {
 	@Shadow
 	@Final
@@ -67,7 +66,11 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	@Override
 	public void initEmptyLightStorage(final ExtendedBlockStorage blockStorage)
 	{
-		((IWorldLightStorageInitializer) this.world).initEmptyLightStorage(blockStorage);
+		final IVanillaWorldLightProvider worldLightProvider = ((IVanillaWorldLightProvider) this.world);
+
+		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = worldLightProvider.getLightStorageProvider().createLightStorage();
+
+		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
 	}
 
 	private @Nullable ExtendedBlockStorage getUpperLightStorage(int y)
@@ -97,7 +100,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 
 		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
 
-		worldLightProvider.initSectionLight(lightStorage, upperBlockStorage);
+		worldLightProvider.initSectionLight((Chunk) (Object) this, blockStorage, upperBlockStorage);
 
 		return blockStorage;
 	}
@@ -114,7 +117,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 		{
 			ExtendedBlockStorage lowerBlockStorage = this.storageArrays[index - 1];
 
-			if (lowerBlockStorage == null && ((IVanillaWorldLightProvider) this.world).getEmptySectionLightProvider() != null)
+			if (lowerBlockStorage == null && ((IVanillaWorldLightProvider) this.world).getEmptySectionLightPredictor() != null)
 			{
 				lowerBlockStorage = new ExtendedBlockStorage(y - 16, this.world.provider.hasSkyLight());
 				this.initLightStorage(lowerBlockStorage);
@@ -126,61 +129,34 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	@Override
 	public Object getWorldLightInterface(final BlockPos pos)
 	{
-		final int y = pos.getY();
-		final int index = y >> 4;
-
-		final ExtendedBlockStorage blockStorage = this.storageArrays[index];
-
-		if (blockStorage != null)
-		{
-			final TypedLightStorage<?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
-			return lightStorage.storage.getStorageInterface(new BlockPos(pos.getX() & 15, pos.getY() & 15, pos.getZ()));
-		}
-
 		final IVanillaWorldLightProvider worldLightProvider = ((IVanillaWorldLightProvider) this.world);
-
-		final @Nullable ExtendedBlockStorage upperBlockStorage = this.getUpperLightStorage(index);
-
-		if (upperBlockStorage == null)
-		{
-			final @Nullable TypedCachedLightProvider<?, ?, ?, ?> skyLightProvider = worldLightProvider.getSkyLightProvider();
-
-			if (skyLightProvider != null)
-				return skyLightProvider.provider.getStorageInterface(pos);
-		}
-		else
-		{
-			final TypedEmptySectionLightPredictor<?, ?, ?, ?> emptySectionLightProvider = worldLightProvider.getEmptySectionLightProvider();
-
-			if (emptySectionLightProvider != null)
-				return this.bindEmptySectionLightProvider(emptySectionLightProvider, upperBlockStorage, pos);
-		}
-
-		return worldLightProvider.getEmptyLightProvider().provider.getStorageInterface(pos);
+		return worldLightProvider.getWorldLightInterface((Chunk) (Object) this, pos);
 	}
 
-	// Internal method to capture types
-	@SuppressWarnings("unchecked")
-	private <D, LI, WI> Object bindEmptySectionLightProvider(
-		final TypedEmptySectionLightPredictor<D, LI, WI, ?> emptySectionLightProvider,
-		final ExtendedBlockStorage upperBlockStorage,
-		final BlockPos pos
-	)
+	@Override
+	public void cleanup()
 	{
-		final TypedLightStorage<?, ?, ?, ?, ?> upperLightStorage = ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage();
+		ExtendedBlockStorage upperBlockStorage = null;
 
-		if (emptySectionLightProvider.type.lightProviderType != upperLightStorage.type.lightProviderType)
-			throw new IllegalStateException("Incompatible light types");
+		for (int i = this.storageArrays.length - 1; i >= 0; --i)
+		{
+			final ExtendedBlockStorage blockStorage = this.storageArrays[i];
 
-		final BlockPos upperPos = new BlockPos(pos.getX(), upperBlockStorage.getYLocation(), pos.getZ());
+			if (blockStorage == Chunk.NULL_BLOCK_STORAGE)
+				continue;
 
-		return emptySectionLightProvider.predictor.getStorageInterface(
-			pos,
-			upperPos,
-			((TypedLightStorage<D, LI, WI, ?, ?>) upperLightStorage).storage.bind(
-				new BlockPos(upperPos.getX() & 15, upperPos.getY() & 15, upperPos.getZ() & 15)
-			).getInterface()
-		);
+			((ICleanable) blockStorage).cleanup();
+
+			final IVanillaWorldLightProvider worldLightProvider = ((IVanillaWorldLightProvider) this.world);
+
+			if (
+				((ISectionEmpty) blockStorage).containsNoBlocks() &&
+					worldLightProvider.isSectionLightTrivial((Chunk) (Object) this, blockStorage, upperBlockStorage)
+				)
+				this.storageArrays[i] = Chunk.NULL_BLOCK_STORAGE;
+			else
+				upperBlockStorage = blockStorage;
+		}
 	}
 
 	/**
@@ -232,7 +208,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 		{
 			final ExtendedBlockStorage lowerBlockStorage = this.storageArrays[index - 1];
 
-			if (lowerBlockStorage == null && ((IVanillaWorldLightProvider) this.world).getEmptySectionLightProvider() != null)
+			if (lowerBlockStorage == null && ((IVanillaWorldLightProvider) this.world).getEmptySectionLightPredictor() != null)
 				this.storageArrays[index - 1] = this.initBlockStorage(new ExtendedBlockStorage(y - 16, this.world.provider.hasSkyLight()), blockStorage);
 		}
 

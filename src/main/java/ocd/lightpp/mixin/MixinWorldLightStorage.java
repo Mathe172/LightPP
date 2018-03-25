@@ -29,7 +29,10 @@ import javax.annotation.Nullable;
 
 import org.spongepowered.asm.mixin.Mixin;
 
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
@@ -39,49 +42,110 @@ import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldLightProvider;
-import ocd.lightpp.impl.IWorldLightStorageInitializer;
+import ocd.lightpp.lighting.vanilla.world.VanillaWorldLightHelper;
 
 @Mixin(World.class)
-public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvider, IWorldLightStorageInitializer
+public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvider
 {
+	private VanillaWorldLightHelper<?, ?, ?, ?, ?, ?> lightManager;
+
+	private final MutableBlockPos cachedPos = new MutableBlockPos();
+	private final MutableBlockPos cachedUpperPos = new MutableBlockPos();
+
 	@Override
-	public void initEmptyLightStorage(final ExtendedBlockStorage blockStorage)
+	public ILightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider()
 	{
-		((IVanillaLightStorageHolder) blockStorage).setLightStorage(this.getLightStorageProvider().createLightStorage());
+		return this.lightManager.lightStorageProvider;
 	}
 
 	@Override
 	public @Nullable TypedCachedLightProvider<?, ?, ?, ?> getSkyLightProvider()
 	{
-		return null;
+		return this.lightManager.skyLightProvider;
 	}
 
 	@Override
-	public @Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?> getEmptySectionLightProvider()
+	public @Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?> getEmptySectionLightPredictor()
 	{
-		return null;
+		return this.lightManager.emptySectionLightPredictor;
 	}
 
 	@Override
 	public TypedLightProvider<?, ?, ?> getEmptyLightProvider()
 	{
+		return this.lightManager.emptyLightProvider;
+	}
+
+	private @Nullable ExtendedBlockStorage getUpperLightStorage(final ExtendedBlockStorage[] storageArray, int y)
+	{
+		for (; ++y < storageArray.length; )
+		{
+			final ExtendedBlockStorage blockStorage = storageArray[y];
+
+			if (blockStorage != null)
+				return blockStorage;
+		}
+
 		return null;
 	}
 
 	@Override
-	public ILightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider()
+	public Object getWorldLightInterface(final Chunk chunk, final BlockPos pos)
 	{
-		return null;
+		final int y = pos.getY();
+		final int index = y >> 4;
+
+		final ExtendedBlockStorage[] storageArray = chunk.getBlockStorageArray();
+
+		final @Nullable ExtendedBlockStorage blockStorage = storageArray[index];
+
+		if (blockStorage != null)
+		{
+			final TypedLightStorage<?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
+			return this.lightManager.getWorldLightInterface(lightStorage, pos);
+		}
+
+		if (this.lightManager.needsUpperStorage())
+		{
+			final @Nullable ExtendedBlockStorage upperBlockStorage = this.getUpperLightStorage(storageArray, index);
+
+			if (upperBlockStorage != null)
+			{
+				final TypedLightStorage<?, ?, ?, ?, ?> upperLightStorage = ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage();
+				return this.lightManager.getWorldLightInterface(
+					pos,
+					upperLightStorage,
+					new BlockPos(pos.getX(), upperBlockStorage.getYLocation(), pos.getZ())
+				);
+			}
+		}
+
+		return this.lightManager.getWorldLightInterface(pos);
 	}
 
 	@Override
-	public void initSectionLight(final TypedLightStorage<?, ?, ?, ?, ?> lightStorage, @Nullable final ExtendedBlockStorage upperBlockStorage)
+	public void initSectionLight(
+		final Chunk chunk,
+		final ExtendedBlockStorage blockStorage,
+		@Nullable final ExtendedBlockStorage upperBlockStorage
+	)
 	{
+		this.lightManager.initLight(
+			((IVanillaLightStorageHolder) blockStorage).getLightStorage(),
+			this.cachedPos.setPos(chunk.x << 4, blockStorage.getYLocation(), chunk.z << 4),
+			upperBlockStorage == null ? null : ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage(),
+			upperBlockStorage == null ? this.cachedPos : this.cachedUpperPos.setPos(chunk.x << 4, upperBlockStorage.getYLocation(), chunk.z << 4)
+		);
 	}
 
 	@Override
-	public boolean isSectionLightTrivial(final TypedLightStorage<?, ?, ?, ?, ?> lightStorage, @Nullable final ExtendedBlockStorage upperBlockStorage)
+	public boolean isSectionLightTrivial(final Chunk chunk, final ExtendedBlockStorage blockStorage, @Nullable final ExtendedBlockStorage upperBlockStorage)
 	{
-		return false;
+		return this.lightManager.isLightTrivial(
+			((IVanillaLightStorageHolder) blockStorage).getLightStorage(),
+			this.cachedPos.setPos(chunk.x << 4, blockStorage.getYLocation(), chunk.z << 4),
+			upperBlockStorage == null ? null : ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage(),
+			upperBlockStorage == null ? this.cachedPos : this.cachedUpperPos.setPos(chunk.x << 4, upperBlockStorage.getYLocation(), chunk.z << 4)
+		);
 	}
 }

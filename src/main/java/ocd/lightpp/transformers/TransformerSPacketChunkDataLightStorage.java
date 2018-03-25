@@ -31,7 +31,7 @@ import ocd.asmutil.InjectionLocator;
 import ocd.asmutil.MethodTransformer;
 import ocd.asmutil.injectors.InvokeInjector;
 import ocd.asmutil.injectors.LocalIndexedVarCapture;
-import ocd.asmutil.injectors.LocalTypedVarCapture;
+import ocd.asmutil.injectors.LocalParameterVarCapture;
 import ocd.asmutil.matchers.MethodMatcher;
 import ocd.asmutil.transformers.LineInjector;
 import ocd.lightpp.transformers.util.NameRef;
@@ -87,7 +87,7 @@ public class TransformerSPacketChunkDataLightStorage extends MethodTransformer.N
 				},
 				1,
 				LineInjector.REMOVE,
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalParameterVarCapture(0, NameRef.GET_BLOCK_LIGHT_MATCHER),
 				new InvokeInjector(CALC_SIZE)
 			),
 			new LineInjector(
@@ -100,7 +100,7 @@ public class TransformerSPacketChunkDataLightStorage extends MethodTransformer.N
 			EXTRACT_DATA_MATCHER,
 			new LineInjector(
 				new MethodMatcher(NameRef.GET_BLOCK_LIGHT_MATCHER),
-				new LocalTypedVarCapture(NameRef.EXTENDED_BLOCK_STORAGE_NAME),
+				new LocalParameterVarCapture(0, NameRef.GET_BLOCK_LIGHT_MATCHER),
 				new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1),
 				new InvokeInjector(WRITE_PACKET_DATA)
 			),

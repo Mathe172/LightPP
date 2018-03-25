@@ -43,6 +43,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightHandler;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.api.vanilla.world.IVanillaLightQueueDataset;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
@@ -301,7 +302,7 @@ public class VanillaLightHandler<D, LI, V, C> implements ILightHandler<D, LI, IV
 	{
 		@Nullable SectionContainer<D, LI, C> section;
 
-		@Nullable ILightStorage.Positioned.Writeable<D, LI> lightInterfaceWriteable;
+		@Nullable Writeable<D, LI> lightInterfaceWriteable;
 		ILightStorage.Positioned<D, LI> lightInterface;
 
 		private final C liContainer;
@@ -360,7 +361,10 @@ public class VanillaLightHandler<D, LI, V, C> implements ILightHandler<D, LI, IV
 		public void notifyLightSet(final D desc)
 		{
 			if (this.lightInterfaceWriteable != null)
+			{
 				this.lightInterfaceWriteable.notifyLightSet(desc);
+				this.lightInterfaceWriteable.notifyLightSet();
+			}
 
 			VanillaLightHandler.this.world.notifyLightSet(this.pos);
 		}

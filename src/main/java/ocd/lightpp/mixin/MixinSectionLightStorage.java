@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -38,14 +39,19 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.world.ICleanable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.api.vanilla.world.ISerializable;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
+import ocd.lightpp.impl.ISectionEmpty;
 import ocd.lightpp.transformers.util.NameRef;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class MixinSectionLightStorage implements IVanillaLightStorageHolder, ISerializable
+public abstract class MixinSectionLightStorage implements IVanillaLightStorageHolder, ISerializable, ICleanable, ISectionEmpty
 {
+	@Shadow
+	private int blockRefCount;
+
 	private @Nullable TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorageHolder;
 
 	@Override
@@ -108,6 +114,19 @@ public abstract class MixinSectionLightStorage implements IVanillaLightStorageHo
 	public void readPacketData(final PacketBuffer buf)
 	{
 		this.getLightStorage().storage.readPacketData(buf);
+	}
+
+	@Override
+	public void cleanup()
+	{
+		if (this.lightStorageHolder != null)
+			this.lightStorageHolder.storage.cleanup();
+	}
+
+	@Override
+	public boolean containsNoBlocks()
+	{
+		return this.blockRefCount == 0;
 	}
 
 	/**

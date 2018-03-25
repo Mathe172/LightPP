@@ -27,24 +27,27 @@ package ocd.lightpp.api.vanilla.world;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
-import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 
 public interface IVanillaWorldLightProvider
 {
+	ILightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider();
+
 	@Nullable TypedCachedLightProvider<?, ?, ?, ?> getSkyLightProvider();
 
-	@Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?> getEmptySectionLightProvider();
+	@Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?> getEmptySectionLightPredictor();
 
 	TypedLightProvider<?, ?, ?> getEmptyLightProvider();
 
-	ILightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider();
+	Object getWorldLightInterface(Chunk chunk, final BlockPos pos);
 
-	void initSectionLight(TypedLightStorage<?, ?, ?, ?, ?> lightStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
+	void initSectionLight(Chunk chunk, ExtendedBlockStorage blockStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
 
-	boolean isSectionLightTrivial(TypedLightStorage<?, ?, ?, ?, ?> lightStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
+	boolean isSectionLightTrivial(Chunk chunk, ExtendedBlockStorage blockStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
 }

@@ -25,7 +25,7 @@
 package ocd.lightpp.api.vanilla.world;
 
 import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.vanilla.world.ILightStorage.Positioned;
+import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 
 public interface IEmptySectionLightPredictor<D, LI, WI, C>
 {
