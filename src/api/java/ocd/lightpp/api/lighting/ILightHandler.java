@@ -46,12 +46,24 @@ public interface ILightHandler<D, LI, WI, V>
 	{
 		ILightUpdateQueueIterator<D, LI, WI, V> activate();
 
+		/**
+		 * Target can be assumed to be valid and loaded
+		 */
 		void enqueueDarkening(D desc, int oldLight);
 
+		/**
+		 * Target can be assumed to be valid and loaded
+		 */
 		void enqueueDarkening(D desc, EnumFacing dir, int oldLight);
 
+		/**
+		 * Target can be assumed to be valid and loaded
+		 */
 		void enqueueBrightening(D desc, int newLight);
 
+		/**
+		 * Target can be assumed to be valid and loaded
+		 */
 		void enqueueBrightening(D desc, EnumFacing dir, int newLight);
 	}
 
@@ -59,6 +71,9 @@ public interface ILightHandler<D, LI, WI, V>
 	{
 		ILightCheckQueueIterator<D, LI, WI, V> activate();
 
+		/**
+		 * @return Whether target is valid
+		 */
 		boolean enqueueCheck(@Nullable D desc, BlockPos pos, @Nullable EnumFacing dir);
 	}
 
@@ -66,6 +81,9 @@ public interface ILightHandler<D, LI, WI, V>
 	{
 		ILightSpreadQueueIterator<D, LI, WI, V> activate();
 
+		/**
+		 * @return Whether target is valid
+		 */
 		boolean enqueueSpread(D desc, BlockPos pos, EnumFacing dir);
 	}
 
@@ -73,6 +91,9 @@ public interface ILightHandler<D, LI, WI, V>
 	{
 		ILightQueueIterator<D, LI, WI, V> activate();
 
+		/**
+		 * @return Whether target is valid
+		 */
 		boolean enqueueInit(BlockPos pos);
 	}
 

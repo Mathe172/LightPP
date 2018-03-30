@@ -37,6 +37,9 @@ public interface ILightMap<D, I>
 
 	I getInterface();
 
+	/**
+	 * Zero values may or may not be skipped
+	 */
 	interface ILightIterator<D>
 	{
 		int getLight();

@@ -27,6 +27,7 @@ package ocd.lightpp.api.vanilla.world;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.chunk.Chunk;
 
 public interface IVanillaWorldInterface
 {
@@ -35,4 +36,9 @@ public interface IVanillaWorldInterface
 	IBlockState getBlockState();
 
 	BlockPos getPos();
+
+	interface Extended extends IVanillaWorldInterface
+	{
+		Chunk getChunk();
+	}
 }

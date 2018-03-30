@@ -274,9 +274,6 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 			final ILightAccess.Extended<D, LI, WI> neighborLightAccess = lightAccess.getNeighbor(dir);
 
-			if (!neighborLightAccess.isValid())
-				continue;
-
 			final D desc = it.getDescriptor();
 			final int light = lightAccess.getLight(desc);
 
@@ -428,7 +425,10 @@ public class LightingEngine<D, MI, LI, WI, V>
 										for (ILightIterator<D> lit = this.oldNeighborLight[i].iterator(); lit.next(); )
 										{
 											final EnumFacing dir = DIRECTIONS_NULL[i];
-											this.enqueueDarkening(lit.getDescriptor(), dir, lit.getLight(), this.getNeighborLightAccess(lightAccess, dir));
+											final int oldLight = lit.getLight();
+
+											if (oldLight > 0)
+												this.enqueueDarkening(lit.getDescriptor(), dir, oldLight, this.getNeighborLightAccess(lightAccess, dir));
 										}
 
 							continue;
@@ -459,11 +459,13 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 							final ILightAccess.Extended<D, LI, WI> neighborLightAccess = this.getNeighborLightAccess(lightAccess, dir);
 
-							if (spread > this.oldNeighborLight[i].get(lDesc))
+							final int oldLight = this.oldNeighborLight[i].get(lDesc);
+
+							if (spread > oldLight)
 								this.enqueueBrightening(lit.getDescriptor(), dir, spread, neighborLightAccess);
 							else
 							{
-								neighborLightAccess.setLight(lDesc, spread);
+								neighborLightAccess.setLight(lDesc, oldLight);
 								neighborLightAccess.notifyLightSet(lDesc); // Due to asynchronous nature of the rendering thread
 							}
 						}
