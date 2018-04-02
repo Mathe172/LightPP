@@ -24,6 +24,8 @@
 
 package ocd.lightpp.api.vanilla.world;
 
+import java.util.function.Supplier;
+
 import ocd.lightpp.api.util.IEmpty;
 
 public interface IVanillaLightQueueDataset<D, Q extends IEmpty>
@@ -39,4 +41,9 @@ public interface IVanillaLightQueueDataset<D, Q extends IEmpty>
 	 * Returns one of the queues that have been {@link #get(D) requested} since they were last discarded
 	 */
 	boolean next();
+
+	interface Provider<D>
+	{
+		<Q extends IEmpty> IVanillaLightQueueDataset<D, Q> get(Supplier<Q> queueProvider);
+	}
 }

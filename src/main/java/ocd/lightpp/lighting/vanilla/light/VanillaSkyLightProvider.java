@@ -100,7 +100,8 @@ public class VanillaSkyLightProvider
 			return this;
 		}
 
-		@Override public IVanillaLightInterface getInterface()
+		@Override
+		public IVanillaLightInterface getInterface()
 		{
 			return this;
 		}

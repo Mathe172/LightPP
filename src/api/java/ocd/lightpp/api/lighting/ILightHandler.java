@@ -40,7 +40,13 @@ public interface ILightHandler<D, LI, WI, V>
 
 	ILightInitQueue<D, LI, WI, V> createInitQueue();
 
-	void cleanup();
+	default void prepare()
+	{
+	}
+
+	default void cleanup()
+	{
+	}
 
 	interface ILightUpdateQueue<D, LI, WI, V>
 	{

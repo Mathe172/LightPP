@@ -99,6 +99,11 @@ public class VanillaWorldLightManager<D, LI, WI, CL, CS, CE>
 		return (ILightStorage<D, LI, WI, CL, ?>) lightStorage;
 	}
 
+	public TypedLightStorage<D, LI, WI, CL, NibbleArray> createLightStorage()
+	{
+		return this.lightStorageProvider.createLightStorage();
+	}
+
 	public WI getWorldLightInterface(final BlockPos pos)
 	{
 		return this.getWorldLightInterface(pos, (ILightStorage<?, LI, WI, ?, ?>) null, pos);

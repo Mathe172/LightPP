@@ -124,18 +124,26 @@ public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvid
 	}
 
 	@Override
-	public void initSectionLight(
+	public void createLightStorage(final ExtendedBlockStorage blockStorage)
+	{
+		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.lightManager.createLightStorage();
+		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
+	}
+
+	@Override
+	public void createInitLightStorage(
 		final Chunk chunk,
 		final ExtendedBlockStorage blockStorage,
 		@Nullable final ExtendedBlockStorage upperBlockStorage
 	)
 	{
-		this.lightManager.initLight(
-			((IVanillaLightStorageHolder) blockStorage).getLightStorage(),
+		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.lightManager.createInitLightStorage(
 			this.cachedPos.setPos(chunk.x << 4, blockStorage.getYLocation(), chunk.z << 4),
 			upperBlockStorage == null ? null : ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage(),
 			upperBlockStorage == null ? this.cachedPos : this.cachedUpperPos.setPos(chunk.x << 4, upperBlockStorage.getYLocation(), chunk.z << 4)
 		);
+
+		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
 	}
 
 	@Override

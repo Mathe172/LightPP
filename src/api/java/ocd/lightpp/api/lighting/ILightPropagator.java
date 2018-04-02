@@ -36,6 +36,10 @@ public interface ILightPropagator<D, MI, SI, WI, V>
 	{
 	}
 
+	default void cleanup()
+	{
+	}
+
 	void calcSourceLight(ILightAccess.VirtuallySourced<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);
 
 	boolean calcLight(ILightAccess.VirtuallySourced.NeighborAware<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);

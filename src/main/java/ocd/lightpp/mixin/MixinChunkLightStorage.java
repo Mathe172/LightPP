@@ -36,7 +36,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
@@ -67,10 +66,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	public void initEmptyLightStorage(final ExtendedBlockStorage blockStorage)
 	{
 		final IVanillaWorldLightProvider worldLightProvider = ((IVanillaWorldLightProvider) this.world);
-
-		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = worldLightProvider.getLightStorageProvider().createLightStorage();
-
-		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
+		worldLightProvider.createLightStorage(blockStorage);
 	}
 
 	private @Nullable ExtendedBlockStorage getUpperLightStorage(int y)
@@ -95,12 +91,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	private ExtendedBlockStorage initBlockStorage(final ExtendedBlockStorage blockStorage, final @Nullable ExtendedBlockStorage upperBlockStorage)
 	{
 		final IVanillaWorldLightProvider worldLightProvider = ((IVanillaWorldLightProvider) this.world);
-
-		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = worldLightProvider.getLightStorageProvider().createLightStorage();
-
-		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
-
-		worldLightProvider.initSectionLight((Chunk) (Object) this, blockStorage, upperBlockStorage);
+		worldLightProvider.createInitLightStorage((Chunk) (Object) this, blockStorage, upperBlockStorage);
 
 		return blockStorage;
 	}

@@ -25,6 +25,7 @@
 
 package ocd.lightpp.lighting;
 
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -86,6 +87,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 		final ILightHandler<D, LI, WI, V> lightHandler,
 		final int maxLight,
 		final ILightPropagator<? super D, ? super MI, ? super LI, WI, ? super V> lightPropagator,
+		final Supplier<? extends ILightMap<D, MI>> lightMapProvider,
 		final Profiler profiler)
 	{
 		this.profiler = profiler;
@@ -105,6 +107,14 @@ public class LightingEngine<D, MI, LI, WI, V>
 		this.initialBrightenings = this.createUpdateQueues();
 
 		this.isNeighborProcessed[7] = true; // needed to treat reflections more uniformly
+
+		this.procLightMap = lightMapProvider.get();
+
+		for (int i = 0; i < this.neighborSpread.length; ++i)
+			this.neighborSpread[i] = lightMapProvider.get();
+
+		for (int i = 0; i < this.oldNeighborLight.length; ++i)
+			this.oldNeighborLight[i] = lightMapProvider.get();
 	}
 
 	private ILightUpdateQueue<D, LI, WI, V>[] createUpdateQueues()
@@ -156,12 +166,15 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 		this.hasUpdates = false;
 
+		this.lightHandler.prepare();
+
 		this.profiler.startSection("lighting");
 
 		if (this.procInits() | this.procSpreads() | this.procChecks())
 			this.computeLightUpdates();
 
 		this.lightHandler.cleanup();
+		this.lightPropagator.cleanup();
 
 		this.profiler.endSection();
 	}

@@ -31,13 +31,19 @@ import ocd.lightpp.api.util.IEmpty;
 
 public class PooledShortQueue implements IEmpty
 {
-	private static final int CACHED_QUEUE_SEGMENTS_COUNT = 1 << 12;
-	private static final int QUEUE_SEGMENT_SIZE = 1 << 7;
-
 	public static class SegmentPool
 	{
+		private final int CACHED_QUEUE_SEGMENTS_COUNT;
+		private final int QUEUE_SEGMENT_SIZE;
+
 		private PooledShortQueueSegment head;
 		private int pooledCount = 0;
+
+		public SegmentPool(final int CACHED_QUEUE_SEGMENTS_COUNT, final int QUEUE_SEGMENT_SIZE)
+		{
+			this.CACHED_QUEUE_SEGMENTS_COUNT = CACHED_QUEUE_SEGMENTS_COUNT;
+			this.QUEUE_SEGMENT_SIZE = QUEUE_SEGMENT_SIZE;
+		}
 
 		private class PooledShortQueueSegment
 		{

@@ -82,4 +82,13 @@ public class VanillaLightQueueDataset<Q extends IEmpty> implements IVanillaLight
 
 		return false;
 	}
+
+	public static class Provider implements IVanillaLightQueueDataset.Provider<IVanillaLightDescriptor>
+	{
+		@Override
+		public <Q extends IEmpty> IVanillaLightQueueDataset<IVanillaLightDescriptor, Q> get(final Supplier<Q> queueProvider)
+		{
+			return new VanillaLightQueueDataset<>(queueProvider);
+		}
+	}
 }

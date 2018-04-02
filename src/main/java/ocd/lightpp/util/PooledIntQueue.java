@@ -31,23 +31,29 @@ import ocd.lightpp.api.util.IEmpty;
 
 public class PooledIntQueue implements IEmpty
 {
-	private static final int CACHED_QUEUE_SEGMENTS_COUNT = 1 << 12;
-	private static final int QUEUE_SEGMENT_SIZE = 1 << 7;
-
 	public static class SegmentPool
 	{
+		private final int CACHED_QUEUE_SEGMENTS_COUNT;
+		private final int QUEUE_SEGMENT_SIZE;
+
 		private PooledIntQueueSegment head;
 		private int pooledCount = 0;
 
+		public SegmentPool(final int CACHED_QUEUE_SEGMENTS_COUNT, final int QUEUE_SEGMENT_SIZE)
+		{
+			this.CACHED_QUEUE_SEGMENTS_COUNT = CACHED_QUEUE_SEGMENTS_COUNT;
+			this.QUEUE_SEGMENT_SIZE = QUEUE_SEGMENT_SIZE;
+		}
+
 		private class PooledIntQueueSegment
 		{
-			private final int[] intArray = new int[QUEUE_SEGMENT_SIZE];
+			private final int[] intArray = new int[SegmentPool.this.QUEUE_SEGMENT_SIZE];
 			private int index = 0;
 			private PooledIntQueueSegment next;
 
 			private void release()
 			{
-				if (SegmentPool.this.pooledCount >= CACHED_QUEUE_SEGMENTS_COUNT)
+				if (SegmentPool.this.pooledCount >= SegmentPool.this.CACHED_QUEUE_SEGMENTS_COUNT)
 					return;
 
 				this.index = 0;
@@ -61,7 +67,7 @@ public class PooledIntQueue implements IEmpty
 			{
 				PooledIntQueueSegment ret = this;
 
-				if (this.index == QUEUE_SEGMENT_SIZE)
+				if (this.index == SegmentPool.this.QUEUE_SEGMENT_SIZE)
 					ret = this.next = SegmentPool.this.getIntQueueSegment();
 
 				ret.intArray[ret.index++] = val;

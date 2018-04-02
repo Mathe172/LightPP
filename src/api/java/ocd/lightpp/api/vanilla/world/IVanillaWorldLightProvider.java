@@ -47,7 +47,9 @@ public interface IVanillaWorldLightProvider
 
 	Object getWorldLightInterface(Chunk chunk, final BlockPos pos);
 
-	void initSectionLight(Chunk chunk, ExtendedBlockStorage blockStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
+	void createLightStorage(ExtendedBlockStorage blockStorage);
+
+	void createInitLightStorage(Chunk chunk, ExtendedBlockStorage blockStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
 
 	boolean isSectionLightTrivial(Chunk chunk, ExtendedBlockStorage blockStorage, @Nullable ExtendedBlockStorage upperBlockStorage);
 }

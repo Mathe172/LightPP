@@ -120,6 +120,31 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 		}
 	}
 
+	public TypedLightStorage<D, LI, WI, CL, NibbleArray> createInitLightStorage(
+		final BlockPos basePos,
+		final @Nullable TypedLightStorage<?, ?, ?, ?, ?> upperLightStorage,
+		final BlockPos upperBasePos
+	)
+	{
+		return this.createInitLightStorage(
+			basePos,
+			upperLightStorage == null ? null : this.checkCachedProviderType(upperLightStorage),
+			upperBasePos
+		);
+	}
+
+	public TypedLightStorage<D, LI, WI, CL, NibbleArray> createInitLightStorage(
+		final BlockPos basePos,
+		final @Nullable ILightStorage<D, LI, ?, CL, ?> upperLightStorage,
+		final BlockPos upperBasePos
+	)
+	{
+		final TypedLightStorage<D, LI, WI, CL, NibbleArray> lightStorage = this.createLightStorage();
+		this.initLight(lightStorage.storage, basePos, upperLightStorage, upperBasePos);
+
+		return lightStorage;
+	}
+
 	private void copyLightData(final ILightStorage<D, LI, ?, CL, ?> lightStorage, final Positioned<D, LI> lightInterface)
 	{
 		final Writeable<D, LI> writeAccess = this.getCachedPositioned(this.cachedIterPos, lightStorage);
