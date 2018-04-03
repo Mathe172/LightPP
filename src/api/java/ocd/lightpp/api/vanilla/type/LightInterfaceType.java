@@ -25,11 +25,11 @@
 
 package ocd.lightpp.api.vanilla.type;
 
-public class LightInterfaceType<D, LI>
+public class LightInterfaceType<LD, LI>
 {
-	public final LightDescriptorType<D> descriptorType;
+	public final LightDescriptorType<LD> descriptorType;
 
-	public LightInterfaceType(final LightDescriptorType<D> descriptorType)
+	public LightInterfaceType(final LightDescriptorType<LD> descriptorType)
 	{
 		this.descriptorType = descriptorType;
 	}

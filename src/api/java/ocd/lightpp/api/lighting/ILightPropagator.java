@@ -26,13 +26,13 @@ package ocd.lightpp.api.lighting;
 
 import net.minecraft.util.EnumFacing;
 
-public interface ILightPropagator<D, MI, SI, WI, V>
+public interface ILightPropagator<LD, LCD extends ILightCollectionDescriptor<LD>, MI, SI, WI, V>
 {
-	default void prepareSpread(final D desc, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess)
+	default void prepareSpread(final LD desc, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess)
 	{
 	}
 
-	default void prepareSpread(final D desc, final EnumFacing dir, final int light, final ILightAccess<? extends SI, ? extends WI> lightAccess, final ILightAccess<? extends SI, ? extends WI> neighborLightAccess)
+	default void prepareSpread(final LD desc, final EnumFacing dir, final int light, final ILightAccess<? extends SI, ? extends WI> lightAccess, final ILightAccess<? extends SI, ? extends WI> neighborLightAccess)
 	{
 	}
 
@@ -40,26 +40,26 @@ public interface ILightPropagator<D, MI, SI, WI, V>
 	{
 	}
 
-	void calcSourceLight(ILightAccess.VirtuallySourced<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);
+	void calcSourceLight(LCD desc, ILightAccess.VirtuallySourced<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);
 
-	boolean calcLight(ILightAccess.VirtuallySourced.NeighborAware<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);
+	boolean calcLight(LCD desc, ILightAccess.VirtuallySourced.NeighborAware<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);
 
 	//TODO: Change interface to return int (valid <-> -1)?
-	boolean calcLight(D desc, ILightAccess.VirtuallySourced.NeighborAware<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);
+	boolean calcLight(LD desc, ILightAccess.VirtuallySourced.NeighborAware<? extends SI, ? extends WI, ? extends V> lightAccess, MI lightMap);
 
-	default boolean canSpread(final D desc, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess)
+	default boolean canSpread(final LD desc, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess)
 	{
 		return true;
 	}
 
-	default boolean canSpread(final D desc, final EnumFacing dir, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess)
+	default boolean canSpread(final LD desc, final EnumFacing dir, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess)
 	{
 		return true;
 	}
 
-	void calcSpread(D desc, EnumFacing dir, int light, ILightAccess<? extends SI, ? extends WI> lightAccess, ILightAccess<? extends SI, ? extends WI> neighborLightAccess, MI lightMap);
+	void calcSpread(LD desc, EnumFacing dir, int light, ILightAccess<? extends SI, ? extends WI> lightAccess, ILightAccess<? extends SI, ? extends WI> neighborLightAccess, MI lightMap);
 
-	default void calcSpread(final D desc, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess, final MI lightMap)
+	default void calcSpread(final LD desc, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess, final MI lightMap)
 	{
 	}
 }

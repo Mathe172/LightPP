@@ -33,6 +33,8 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightAccess.VirtuallySourced;
+import ocd.lightpp.api.lighting.ILightAccess.VirtuallySourced.NeighborAware;
+import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.lighting.ILightMap;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.lighting.ILightPropagator;
@@ -42,9 +44,16 @@ import ocd.lightpp.api.vanilla.light.IVanillaLightMap;
 import ocd.lightpp.api.vanilla.light.IVanillaLightSource;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
 
-public class VanillaLightPropagator implements ILightPropagator<IVanillaLightDescriptor, IVanillaLightMap, IVanillaLightInterface, IVanillaWorldInterface, IVanillaLightSource>
+public class VanillaLightPropagator
+	implements ILightPropagator<
+	IVanillaLightDescriptor,
+	ILightCollectionDescriptor<IVanillaLightDescriptor>,
+	IVanillaLightMap,
+	IVanillaLightInterface,
+	IVanillaWorldInterface,
+	IVanillaLightSource
+	>
 {
-
 	private final int worldMaxLight;
 
 	private IVanillaWorldInterface world;
@@ -54,7 +63,7 @@ public class VanillaLightPropagator implements ILightPropagator<IVanillaLightDes
 
 	private final ILightMap<IVanillaLightDescriptor, IVanillaLightMap> vLightMap;
 
-	public VanillaLightPropagator(final int worldMaxLight, Supplier<ILightMap<IVanillaLightDescriptor, IVanillaLightMap>> lightMapProvider)
+	public VanillaLightPropagator(final int worldMaxLight, final Supplier<ILightMap<IVanillaLightDescriptor, IVanillaLightMap>> lightMapProvider)
 	{
 		this.worldMaxLight = worldMaxLight;
 
@@ -88,11 +97,14 @@ public class VanillaLightPropagator implements ILightPropagator<IVanillaLightDes
 
 	@Override
 	public void calcSourceLight(
+		final ILightCollectionDescriptor<IVanillaLightDescriptor> collectionDesc,
 		final VirtuallySourced<? extends IVanillaLightInterface, ? extends IVanillaWorldInterface, ? extends IVanillaLightSource> lightAccess,
 		final IVanillaLightMap lightMap
 	)
 	{
-		this.calcSourceLight(null, lightAccess, lightMap);
+		final IVanillaLightDescriptor desc = collectionDesc.getDescriptor();
+
+		this.calcSourceLight(desc == null ? null : desc.getSkyBlock(), lightAccess, lightMap);
 	}
 
 	private void calcSourceLight(
@@ -133,11 +145,22 @@ public class VanillaLightPropagator implements ILightPropagator<IVanillaLightDes
 
 	@Override
 	public boolean calcLight(
+		final ILightCollectionDescriptor<IVanillaLightDescriptor> collectionDesc,
+		final NeighborAware<? extends IVanillaLightInterface, ? extends IVanillaWorldInterface, ? extends IVanillaLightSource> lightAccess,
+		final IVanillaLightMap lightMap
+	)
+	{
+		final IVanillaLightDescriptor desc = collectionDesc.getDescriptor();
+
+		return desc == null ? this.calcLight(lightAccess, lightMap) : this.calcLight(desc, lightAccess, lightMap);
+	}
+
+	private boolean calcLight(
 		final VirtuallySourced.NeighborAware<? extends IVanillaLightInterface, ? extends IVanillaWorldInterface, ? extends IVanillaLightSource> lightAccess,
 		final IVanillaLightMap lightMap
 	)
 	{
-		this.calcSourceLight(lightAccess, lightMap);
+		this.calcSourceLight((EnumSkyBlock) null, lightAccess, lightMap);
 
 		return this.calcNeighborLight(EnumSkyBlock.SKY, lightAccess, lightMap) & this.calcNeighborLight(EnumSkyBlock.BLOCK, lightAccess, lightMap);
 	}

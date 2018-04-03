@@ -27,25 +27,25 @@ package ocd.lightpp.api.vanilla.type;
 
 import ocd.lightpp.api.vanilla.world.ILightProvider;
 
-public class LightProviderType<D, LI, WI>
+public class LightProviderType<LD, LI, WI>
 {
-	public final LightInterfaceType<D, LI> lightInterfaceType;
+	public final LightInterfaceType<LD, LI> lightInterfaceType;
 	public final WorldLightInterfaceType<WI> worldLightInterfaceType;
 
-	public LightProviderType(final LightInterfaceType<D, LI> lightInterfaceType, final WorldLightInterfaceType<WI> worldLightInterfaceType)
+	public LightProviderType(final LightInterfaceType<LD, LI> lightInterfaceType, final WorldLightInterfaceType<WI> worldLightInterfaceType)
 	{
 		this.lightInterfaceType = lightInterfaceType;
 		this.worldLightInterfaceType = worldLightInterfaceType;
 	}
 
-	public static class TypedLightProvider<D, LI, WI>
+	public static class TypedLightProvider<LD, LI, WI>
 	{
-		public final LightProviderType<D, LI, WI> type;
-		public final ILightProvider<D, LI, WI> provider;
+		public final LightProviderType<LD, LI, WI> type;
+		public final ILightProvider<LD, LI, WI> provider;
 
 		public TypedLightProvider(
-			final LightProviderType<D, LI, WI> type,
-			final ILightProvider<D, LI, WI> provider
+			final LightProviderType<LD, LI, WI> type,
+			final ILightProvider<LD, LI, WI> provider
 		)
 		{
 			this.type = type;

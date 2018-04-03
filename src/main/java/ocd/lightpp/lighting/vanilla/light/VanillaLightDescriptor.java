@@ -26,8 +26,9 @@ package ocd.lightpp.lighting.vanilla.light;
 
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
+import ocd.lightpp.util.ITypedEqual;
 
-public class VanillaLightDescriptor implements IVanillaLightDescriptor
+public class VanillaLightDescriptor implements IVanillaLightDescriptor, ITypedEqual<IVanillaLightDescriptor>
 {
 	private EnumSkyBlock skyBlock;
 
@@ -38,7 +39,6 @@ public class VanillaLightDescriptor implements IVanillaLightDescriptor
 
 	public VanillaLightDescriptor(final EnumSkyBlock skyBlock)
 	{
-
 		this.skyBlock = skyBlock;
 	}
 
@@ -51,5 +51,26 @@ public class VanillaLightDescriptor implements IVanillaLightDescriptor
 	public void setSkyBlock(final EnumSkyBlock skyBlock)
 	{
 		this.skyBlock = skyBlock;
+	}
+
+	@Override
+	public boolean equalsTyped(final IVanillaLightDescriptor desc)
+	{
+		return this.skyBlock == desc.getSkyBlock();
+	}
+
+	@Override
+	public boolean equals(final Object obj)
+	{
+		if (obj == this)
+			return true;
+
+		if (obj == null)
+			return false;
+
+		if (!(obj instanceof IVanillaLightDescriptor))
+			return false;
+
+		return this.equalsTyped((IVanillaLightDescriptor) obj);
 	}
 }

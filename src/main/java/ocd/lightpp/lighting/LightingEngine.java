@@ -35,11 +35,12 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightAccess.NeighborAware;
+import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.lighting.ILightHandler;
 import ocd.lightpp.api.lighting.ILightHandler.ILightCheckQueue;
 import ocd.lightpp.api.lighting.ILightHandler.ILightCheckQueueIterator;
 import ocd.lightpp.api.lighting.ILightHandler.ILightInitQueue;
-import ocd.lightpp.api.lighting.ILightHandler.ILightQueueIterator;
+import ocd.lightpp.api.lighting.ILightHandler.ILightInitQueueIterator;
 import ocd.lightpp.api.lighting.ILightHandler.ILightSpreadQueue;
 import ocd.lightpp.api.lighting.ILightHandler.ILightSpreadQueueIterator;
 import ocd.lightpp.api.lighting.ILightHandler.ILightUpdateQueue;
@@ -48,46 +49,43 @@ import ocd.lightpp.api.lighting.ILightMap;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.lighting.ILightPropagator;
 
-public class LightingEngine<D, MI, LI, WI, V>
+public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, LI, WI, V>
 {
 	private final Profiler profiler;
 
 	private final int maxLight;
 
-	private final ILightHandler<D, LI, WI, V> lightHandler;
-	private final ILightPropagator<? super D, ? super MI, ? super LI, ? super WI, ? super V> lightPropagator;
+	private final ILightHandler<LD, LCD, LI, WI, V> lightHandler;
+	private final ILightPropagator<? super LD, ? super LCD, ? super MI, ? super LI, ? super WI, ? super V> lightPropagator;
 
-	// 
-	private final ILightCheckQueue<D, LI, WI, V> queuedChecks;
-	private final ILightSpreadQueue<D, LI, WI, V> queuedSpreads;
-	private final ILightInitQueue<D, LI, WI, V> queuedInits;
+	private final ILightCheckQueue<LD, LCD, LI, WI, V> queuedChecks;
+	private final ILightSpreadQueue<LD, LI, WI, V> queuedSpreads;
+	private final ILightInitQueue<LD, LCD, LI, WI, V> queuedInits;
 
-	// 
-	private final ILightUpdateQueue<D, LI, WI, V> initialDarkenings;
-	private final ILightUpdateQueue<D, LI, WI, V>[] initialBrightenings;
+	private final ILightUpdateQueue<LD, LI, WI, V> initialDarkenings;
+	private final ILightUpdateQueue<LD, LI, WI, V>[] initialBrightenings;
 
-	// 
-	private final ILightUpdateQueue<D, LI, WI, V>[] queuedDarkenings;
-	private final ILightUpdateQueue<D, LI, WI, V>[] queuedBrightenings;
+	private final ILightUpdateQueue<LD, LI, WI, V>[] queuedDarkenings;
+	private final ILightUpdateQueue<LD, LI, WI, V>[] queuedBrightenings;
 
-	private final ILightMap<D, MI> procLightMap;
+	private final ILightMap<LD, MI> procLightMap;
 
 	// whether there are any checks left to do
 	private boolean hasUpdates;
 
 	private final boolean[] isNeighborProcessed = new boolean[7];
 	@SuppressWarnings("unchecked")
-	private final ILightMap<D, MI>[] neighborSpread = (ILightMap<D, MI>[]) new ILightMap[7];
+	private final ILightMap<LD, MI>[] neighborSpread = (ILightMap<LD, MI>[]) new ILightMap[7];
 	@SuppressWarnings("unchecked")
-	private final ILightMap<D, MI>[] oldNeighborLight = (ILightMap<D, MI>[]) new ILightMap[7];
+	private final ILightMap<LD, MI>[] oldNeighborLight = (ILightMap<LD, MI>[]) new ILightMap[7];
 
 	private static final EnumFacing[] DIRECTIONS_NULL = ArrayUtils.add(EnumFacing.VALUES, null);
 
 	public LightingEngine(
-		final ILightHandler<D, LI, WI, V> lightHandler,
+		final ILightHandler<LD, LCD, LI, WI, V> lightHandler,
 		final int maxLight,
-		final ILightPropagator<? super D, ? super MI, ? super LI, WI, ? super V> lightPropagator,
-		final Supplier<? extends ILightMap<D, MI>> lightMapProvider,
+		final ILightPropagator<? super LD, ? super LCD, ? super MI, ? super LI, WI, ? super V> lightPropagator,
+		final Supplier<? extends ILightMap<LD, MI>> lightMapProvider,
 		final Profiler profiler)
 	{
 		this.profiler = profiler;
@@ -117,9 +115,9 @@ public class LightingEngine<D, MI, LI, WI, V>
 			this.oldNeighborLight[i] = lightMapProvider.get();
 	}
 
-	private ILightUpdateQueue<D, LI, WI, V>[] createUpdateQueues()
+	private ILightUpdateQueue<LD, LI, WI, V>[] createUpdateQueues()
 	{
-		@SuppressWarnings("unchecked") final ILightUpdateQueue<D, LI, WI, V>[] queues = (ILightUpdateQueue<D, LI, WI, V>[]) new ILightUpdateQueue[this.maxLight];
+		@SuppressWarnings("unchecked") final ILightUpdateQueue<LD, LI, WI, V>[] queues = (ILightUpdateQueue<LD, LI, WI, V>[]) new ILightUpdateQueue[this.maxLight];
 
 		for (int i = 0; i < queues.length; ++i)
 			queues[i] = this.lightHandler.createUpdateQueue();
@@ -127,7 +125,16 @@ public class LightingEngine<D, MI, LI, WI, V>
 		return queues;
 	}
 
-	public boolean scheduleLightCheck(final @Nullable D desc, final BlockPos pos, final @Nullable EnumFacing dir)
+	public boolean scheduleLightCheck(final BlockPos pos, final @Nullable EnumFacing dir)
+	{
+		final boolean accepted = this.queuedChecks.enqueueCheck(pos, dir);
+
+		this.hasUpdates |= accepted;
+
+		return accepted;
+	}
+
+	public boolean scheduleLightCheck(final LCD desc, final BlockPos pos, final @Nullable EnumFacing dir)
 	{
 		final boolean accepted = this.queuedChecks.enqueueCheck(desc, pos, dir);
 
@@ -136,7 +143,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 		return accepted;
 	}
 
-	public boolean scheduleLightSpread(final D desc, final BlockPos pos, final EnumFacing dir)
+	public boolean scheduleLightSpread(final LD desc, final BlockPos pos, final EnumFacing dir)
 	{
 		final boolean accepted = this.queuedSpreads.enqueueSpread(desc, pos, dir);
 
@@ -148,6 +155,15 @@ public class LightingEngine<D, MI, LI, WI, V>
 	public boolean scheduleLightInit(final BlockPos pos)
 	{
 		final boolean accepted = this.queuedInits.enqueueInit(pos);
+
+		this.hasUpdates |= accepted;
+
+		return accepted;
+	}
+
+	public boolean scheduleLightInit(final LCD desc, final BlockPos pos)
+	{
+		final boolean accepted = this.queuedInits.enqueueInit(desc, pos);
 
 		this.hasUpdates |= accepted;
 
@@ -186,9 +202,9 @@ public class LightingEngine<D, MI, LI, WI, V>
 		this.profiler.startSection("checking");
 
 		// Process the queued updates and enqueue them for further processing
-		for (final ILightCheckQueueIterator<D, LI, WI, V> it = this.queuedChecks.activate(); it.next(); )
+		for (final ILightCheckQueueIterator<LD, LCD, LI, WI, V> it = this.queuedChecks.activate(); it.next(); )
 		{
-			final ILightAccess.Extended<D, LI, WI> lightAccess = it.getLightAccess();
+			final ILightAccess.Extended<LD, LI, WI> lightAccess = it.getLightAccess();
 
 			if (!lightAccess.isLoaded())
 			{
@@ -200,33 +216,42 @@ public class LightingEngine<D, MI, LI, WI, V>
 				continue;
 			}
 
-			final @Nullable D desc = it.getDescriptor();
+			final LCD collectionDesc = it.getDescriptor();
+			final LD desc = collectionDesc.getDescriptor();
 
-			final boolean isValid = this.calcNewLight(desc, it);
+			final boolean isValid = this.calcNewLight(collectionDesc, it);
 
 			if (desc == null)
 			{
-				for (final ILightIterator<D> lit = this.procLightMap.iterator(); lit.next(); )
+				for (final ILightIterator<LD> lit = this.procLightMap.iterator(); lit.next(); )
 				{
-					final D curDesc = lit.getDescriptor();
-					final int oldLight = lightAccess.getLight(curDesc);
-					final int newLight = lit.getLight();
+					final LD curDesc = lit.getDescriptor();
 
-					needsProcessing |= this.enqueueChanges(isValid, curDesc, oldLight, newLight);
+					if (collectionDesc.contains(curDesc))
+					{
+						final int oldLight = lightAccess.getLight(curDesc);
+						final int newLight = lit.getLight();
+
+						needsProcessing |= this.enqueueChanges(isValid, curDesc, oldLight, newLight);
+					}
 				}
 
 				if (isValid)
-					for (final ILightIterator<D> lit = lightAccess.getLightIterator(); lit.next(); )
+					for (final ILightIterator<LD> lit = lightAccess.getLightIterator(); lit.next(); )
 					{
-						final D curDesc = lit.getDescriptor();
-						final int oldLight = lit.getLight();
-						final int newLight = this.procLightMap.get(curDesc);
+						final LD curDesc = lit.getDescriptor();
 
-						if (newLight == 0 && oldLight > 0)
+						if (collectionDesc.contains(curDesc))
 						{
-							// Don't enqueue directly for darkening in order to avoid duplicate scheduling
-							this.initialDarkenings.enqueueDarkening(curDesc, oldLight);
-							needsProcessing = true;
+							final int oldLight = lit.getLight();
+							final int newLight = this.procLightMap.get(curDesc);
+
+							if (newLight == 0 && oldLight > 0)
+							{
+								// Don't enqueue directly for darkening in order to avoid duplicate scheduling
+								this.initialDarkenings.enqueueDarkening(curDesc, oldLight);
+								needsProcessing = true;
+							}
 						}
 					}
 			}
@@ -241,10 +266,10 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 		if (needsProcessing)
 		{
-			for (final ILightUpdateQueueIterator<D, LI, WI, V> it = this.initialDarkenings.activate(); it.next(); )
+			for (final ILightUpdateQueueIterator<LD, LI, WI, V> it = this.initialDarkenings.activate(); it.next(); )
 			{
-				final D desc = it.getDescriptor();
-				final ILightAccess.Extended<D, LI, WI> lightAccess = it.getLightAccess();
+				final LD desc = it.getDescriptor();
+				final ILightAccess.Extended<LD, LI, WI> lightAccess = it.getLightAccess();
 
 				final int oldLight = lightAccess.getLight(desc);
 
@@ -255,10 +280,10 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 			// Sets the light to newLight to only schedule once. Clear leading bits of curData for later
 			for (int curLight = this.maxLight; curLight > 0; --curLight)
-				for (final ILightUpdateQueueIterator<D, LI, WI, V> it = this.initialBrightenings[curLight - 1].activate(); it.next(); )
+				for (final ILightUpdateQueueIterator<LD, LI, WI, V> it = this.initialBrightenings[curLight - 1].activate(); it.next(); )
 				{
-					final D desc = it.getDescriptor();
-					final ILightAccess.Extended<D, LI, WI> lightAccess = it.getLightAccess();
+					final LD desc = it.getDescriptor();
+					final ILightAccess.Extended<LD, LI, WI> lightAccess = it.getLightAccess();
 
 					if (curLight > lightAccess.getLight(desc))
 						this.enqueueBrightening(desc, null, curLight, lightAccess);
@@ -276,18 +301,18 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 		this.profiler.startSection("spreading");
 
-		for (final ILightSpreadQueueIterator<D, LI, WI, V> it = this.queuedSpreads.activate(); it.next(); )
+		for (final ILightSpreadQueueIterator<LD, LI, WI, V> it = this.queuedSpreads.activate(); it.next(); )
 		{
-			final ILightAccess.NeighborAware.Extended<D, LI, WI> lightAccess = it.getLightAccess();
+			final ILightAccess.NeighborAware.Extended<LD, LI, WI> lightAccess = it.getLightAccess();
 
 			if (!lightAccess.isLoaded())
 				continue;
 
 			final EnumFacing dir = it.getDir();
 
-			final ILightAccess.Extended<D, LI, WI> neighborLightAccess = lightAccess.getNeighbor(dir);
+			final ILightAccess.Extended<LD, LI, WI> neighborLightAccess = lightAccess.getNeighbor(dir);
 
-			final D desc = it.getDescriptor();
+			final LD desc = it.getDescriptor();
 			final int light = lightAccess.getLight(desc);
 
 			this.lightPropagator.prepareSpread(desc, dir, light, lightAccess, neighborLightAccess);
@@ -312,26 +337,32 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 		this.profiler.startSection("init");
 
-		for (final ILightQueueIterator<D, LI, WI, V> it = this.queuedInits.activate(); it.next(); )
+		for (final ILightInitQueueIterator<LD, LCD, LI, WI, V> it = this.queuedInits.activate(); it.next(); )
 		{
-			final ILightAccess.VirtuallySourced.NeighborAware.Extended<D, LI, WI, V> lightAccess = it.getLightAccess();
+			final LCD desc = it.getDescriptor();
+
+			final ILightAccess.VirtuallySourced.NeighborAware.Extended<LD, LI, WI, V> lightAccess = it.getLightAccess();
 
 			if (!lightAccess.isLoaded())
 				continue;
 
 			this.procLightMap.clear();
-			this.lightPropagator.calcSourceLight(lightAccess, this.procLightMap.getInterface());
+			this.lightPropagator.calcSourceLight(desc, lightAccess, this.procLightMap.getInterface());
 
-			for (final ILightIterator<D> lit = this.procLightMap.iterator(); lit.next(); )
+			for (final ILightIterator<LD> lit = this.procLightMap.iterator(); lit.next(); )
 			{
-				final D curDesc = lit.getDescriptor();
-				final int oldLight = lightAccess.getLight(curDesc);
-				final int newLight = lit.getLight();
+				final LD curDesc = lit.getDescriptor();
 
-				if (oldLight < newLight)
+				if (desc.contains(curDesc))
 				{
-					this.enqueueBrightening(curDesc, null, newLight, lightAccess);
-					needsProcessing = true;
+					final int oldLight = lightAccess.getLight(curDesc);
+					final int newLight = lit.getLight();
+
+					if (oldLight < newLight)
+					{
+						this.enqueueBrightening(curDesc, null, newLight, lightAccess);
+						needsProcessing = true;
+					}
 				}
 			}
 		}
@@ -341,7 +372,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 		return needsProcessing;
 	}
 
-	private boolean enqueueChanges(final boolean isValid, final D desc, final int oldLight, final int newLight)
+	private boolean enqueueChanges(final boolean isValid, final LD desc, final int oldLight, final int newLight)
 	{
 		if (oldLight < newLight)
 		{
@@ -367,10 +398,10 @@ public class LightingEngine<D, MI, LI, WI, V>
 		{
 			this.profiler.startSection("darkening");
 
-			for (final ILightUpdateQueueIterator<D, LI, WI, V> it = this.queuedDarkenings[procLight - 1].activate(); it.next(); )
+			for (final ILightUpdateQueueIterator<LD, LI, WI, V> it = this.queuedDarkenings[procLight - 1].activate(); it.next(); )
 			{
-				final D desc = it.getDescriptor();
-				final ILightAccess.VirtuallySourced.NeighborAware.Extended<D, LI, WI, V> lightAccess = it.getLightAccess();
+				final LD desc = it.getDescriptor();
+				final ILightAccess.VirtuallySourced.NeighborAware.Extended<LD, LI, WI, V> lightAccess = it.getLightAccess();
 
 				final int curLight = lightAccess.getLight(desc);
 
@@ -390,7 +421,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 					{
 						final EnumFacing dir = EnumFacing.VALUES[i];
 
-						final ILightAccess.Extended<D, LI, WI> neighborLightAccess = lightAccess.getNeighbor(dir);
+						final ILightAccess.Extended<LD, LI, WI> neighborLightAccess = lightAccess.getNeighbor(dir);
 
 						this.isNeighborProcessed[i] = false;
 
@@ -435,7 +466,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 								// Schedule neighbor for darkening if we possibly light it
 								for (int i = 0; i < 7; ++i)
 									if (this.isNeighborProcessed[i])
-										for (ILightIterator<D> lit = this.oldNeighborLight[i].iterator(); lit.next(); )
+										for (ILightIterator<LD> lit = this.oldNeighborLight[i].iterator(); lit.next(); )
 										{
 											final EnumFacing dir = DIRECTIONS_NULL[i];
 											final int oldLight = lit.getLight();
@@ -465,12 +496,12 @@ public class LightingEngine<D, MI, LI, WI, V>
 					final @Nullable EnumFacing dir = DIRECTIONS_NULL[i];
 
 					if (this.isNeighborProcessed[i])
-						for (ILightIterator<D> lit = this.neighborSpread[i].iterator(); lit.next(); )
+						for (ILightIterator<LD> lit = this.neighborSpread[i].iterator(); lit.next(); )
 						{
-							final D lDesc = lit.getDescriptor();
+							final LD lDesc = lit.getDescriptor();
 							final int spread = lit.getLight();
 
-							final ILightAccess.Extended<D, LI, WI> neighborLightAccess = this.getNeighborLightAccess(lightAccess, dir);
+							final ILightAccess.Extended<LD, LI, WI> neighborLightAccess = this.getNeighborLightAccess(lightAccess, dir);
 
 							final int oldLight = this.oldNeighborLight[i].get(lDesc);
 
@@ -487,10 +518,10 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 			this.profiler.endStartSection("brightening");
 
-			for (final ILightUpdateQueueIterator<D, LI, WI, V> it = this.queuedBrightenings[procLight - 1].activate(); it.next(); )
+			for (final ILightUpdateQueueIterator<LD, LI, WI, V> it = this.queuedBrightenings[procLight - 1].activate(); it.next(); )
 			{
-				final D desc = it.getDescriptor();
-				final ILightAccess.NeighborAware.Extended<D, LI, WI> lightAccess = it.getLightAccess();
+				final LD desc = it.getDescriptor();
+				final ILightAccess.NeighborAware.Extended<LD, LI, WI> lightAccess = it.getLightAccess();
 
 				// Only process this if nothing else has happened at this position since scheduling
 				if (lightAccess.getLight(desc) != procLight)
@@ -505,7 +536,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 
 				for (final EnumFacing dir : EnumFacing.VALUES)
 				{
-					final ILightAccess.Extended<D, LI, WI> neighborLightAccess = lightAccess.getNeighbor(dir);
+					final ILightAccess.Extended<LD, LI, WI> neighborLightAccess = lightAccess.getNeighbor(dir);
 
 					if (!neighborLightAccess.isValid())
 						continue;
@@ -527,24 +558,24 @@ public class LightingEngine<D, MI, LI, WI, V>
 	}
 
 	private void prepareNeighborDarkening(
-		final D desc,
+		final LD desc,
 		final @Nullable EnumFacing dir,
 		final int procLight,
 		final int index,
 		final ILightAccess.NeighborAware<LI, WI> lightAccess,
-		final ILightAccess.Extended<D, LI, WI> neighborLightAccess
+		final ILightAccess.Extended<LD, LI, WI> neighborLightAccess
 	)
 	{
-		final ILightMap<D, MI> lightMap = this.neighborSpread[index];
+		final ILightMap<LD, MI> lightMap = this.neighborSpread[index];
 		this.calcSpread(desc, dir, procLight, lightAccess, neighborLightAccess, lightMap);
 
-		final ILightMap<D, MI> oldLightMap = this.oldNeighborLight[index];
+		final ILightMap<LD, MI> oldLightMap = this.oldNeighborLight[index];
 		oldLightMap.clear();
 
-		for (final ILightIterator<D> lit = lightMap.iterator(); lit.next(); )
+		for (final ILightIterator<LD> lit = lightMap.iterator(); lit.next(); )
 		{
 			final int spread = lit.getLight();
-			final D lDesc = lit.getDescriptor();
+			final LD lDesc = lit.getDescriptor();
 			final int curNeighborLight = neighborLightAccess.getLight(lDesc);
 
 			if (spread >= curNeighborLight && curNeighborLight > 0)
@@ -556,12 +587,12 @@ public class LightingEngine<D, MI, LI, WI, V>
 	}
 
 	private void calcSpread(
-		final D desc,
+		final LD desc,
 		final @Nullable EnumFacing dir,
 		final int light,
 		final ILightAccess.NeighborAware<LI, WI> lightAccess,
 		final ILightAccess<LI, WI> neighborLightAccess,
-		final ILightMap<D, MI> lightMap
+		final ILightMap<LD, MI> lightMap
 	)
 	{
 		lightMap.clear();
@@ -572,17 +603,17 @@ public class LightingEngine<D, MI, LI, WI, V>
 			this.lightPropagator.calcSpread(desc, dir, light, lightAccess, neighborLightAccess, lightMap.getInterface());
 	}
 
-	private boolean enqueueNeighborBrightening(final D desc, final @Nullable EnumFacing dir, final int procLight, final NeighborAware<LI, WI> lightAccess, final ILightAccess.Extended<D, LI, WI> neighborLightAccess)
+	private boolean enqueueNeighborBrightening(final LD desc, final @Nullable EnumFacing dir, final int procLight, final NeighborAware<LI, WI> lightAccess, final ILightAccess.Extended<LD, LI, WI> neighborLightAccess)
 	{
 		this.calcSpread(desc, dir, procLight, lightAccess, neighborLightAccess, this.procLightMap);
 
 		boolean needsProcessing = false;
 
-		for (final ILightIterator<D> lit = this.procLightMap.iterator(); lit.next(); )
+		for (final ILightIterator<LD> lit = this.procLightMap.iterator(); lit.next(); )
 		{
 			final int newLight = lit.getLight();
 
-			final D lDesc = lit.getDescriptor();
+			final LD lDesc = lit.getDescriptor();
 
 			if (newLight > neighborLightAccess.getLight(lDesc))
 			{
@@ -595,20 +626,18 @@ public class LightingEngine<D, MI, LI, WI, V>
 		return needsProcessing;
 	}
 
-	private ILightAccess.Extended<D, LI, WI> getNeighborLightAccess(final ILightAccess.NeighborAware.Extended<D, LI, WI> lightAccess, @Nullable final EnumFacing dir)
+	private ILightAccess.Extended<LD, LI, WI> getNeighborLightAccess(final ILightAccess.NeighborAware.Extended<LD, LI, WI> lightAccess, @Nullable final EnumFacing dir)
 	{
 		return dir == null ? lightAccess : lightAccess.getNeighbor(dir);
 	}
 
-	private boolean calcNewLight(final @Nullable D desc, final ILightCheckQueueIterator<D, LI, WI, V> it)
+	private boolean calcNewLight(final LCD desc, final ILightCheckQueueIterator<LD, LCD, LI, WI, V> it)
 	{
 		this.procLightMap.clear();
 
 		final ILightAccess.VirtuallySourced.NeighborAware<LI, WI, V> lightAccess = it.getLightAccess();
 
-		final boolean isValid = desc == null
-			? this.lightPropagator.calcLight(lightAccess, this.procLightMap.getInterface())
-			: this.lightPropagator.calcLight(desc, lightAccess, this.procLightMap.getInterface());
+		final boolean isValid = this.lightPropagator.calcLight(desc, lightAccess, this.procLightMap.getInterface());
 
 		if (!isValid)
 			it.markForRecheck();
@@ -616,7 +645,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 		return isValid;
 	}
 
-	private void enqueueDarkening(final D desc, final @Nullable EnumFacing dir, final int oldLight, final ILightAccess.Extended<D, LI, WI> lightAccess)
+	private void enqueueDarkening(final LD desc, final @Nullable EnumFacing dir, final int oldLight, final ILightAccess.Extended<LD, LI, WI> lightAccess)
 	{
 		if (dir == null)
 			this.queuedDarkenings[oldLight - 1].enqueueDarkening(desc, oldLight);
@@ -626,7 +655,7 @@ public class LightingEngine<D, MI, LI, WI, V>
 		lightAccess.setLight(desc, 0);
 	}
 
-	private void enqueueBrightening(final D desc, final @Nullable EnumFacing dir, final int newLight, final ILightAccess.Extended<D, LI, WI> lightAccess)
+	private void enqueueBrightening(final LD desc, final @Nullable EnumFacing dir, final int newLight, final ILightAccess.Extended<LD, LI, WI> lightAccess)
 	{
 		if (dir == null)
 			this.queuedBrightenings[newLight - 1].enqueueBrightening(desc, newLight);

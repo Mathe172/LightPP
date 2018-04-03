@@ -30,15 +30,15 @@ import javax.annotation.Nullable;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 
-public interface ILightHandler<D, LI, WI, V>
+public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V>
 {
-	ILightUpdateQueue<D, LI, WI, V> createUpdateQueue();
+	ILightUpdateQueue<LD, LI, WI, V> createUpdateQueue();
 
-	ILightCheckQueue<D, LI, WI, V> createCheckQueue();
+	ILightCheckQueue<LD, LCD, LI, WI, V> createCheckQueue();
 
-	ILightSpreadQueue<D, LI, WI, V> createSpreadQueue();
+	ILightSpreadQueue<LD, LI, WI, V> createSpreadQueue();
 
-	ILightInitQueue<D, LI, WI, V> createInitQueue();
+	ILightInitQueue<LD, LCD, LI, WI, V> createInitQueue();
 
 	default void prepare()
 	{
@@ -48,78 +48,92 @@ public interface ILightHandler<D, LI, WI, V>
 	{
 	}
 
-	interface ILightUpdateQueue<D, LI, WI, V>
+	interface ILightUpdateQueue<LD, LI, WI, V>
 	{
-		ILightUpdateQueueIterator<D, LI, WI, V> activate();
+		ILightUpdateQueueIterator<LD, LI, WI, V> activate();
 
 		/**
 		 * Target can be assumed to be valid and loaded
 		 */
-		void enqueueDarkening(D desc, int oldLight);
+		void enqueueDarkening(LD desc, int oldLight);
 
 		/**
 		 * Target can be assumed to be valid and loaded
 		 */
-		void enqueueDarkening(D desc, EnumFacing dir, int oldLight);
+		void enqueueDarkening(LD desc, EnumFacing dir, int oldLight);
 
 		/**
 		 * Target can be assumed to be valid and loaded
 		 */
-		void enqueueBrightening(D desc, int newLight);
+		void enqueueBrightening(LD desc, int newLight);
 
 		/**
 		 * Target can be assumed to be valid and loaded
 		 */
-		void enqueueBrightening(D desc, EnumFacing dir, int newLight);
+		void enqueueBrightening(LD desc, EnumFacing dir, int newLight);
 	}
 
-	interface ILightCheckQueue<D, LI, WI, V>
+	interface ILightCheckQueue<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V>
 	{
-		ILightCheckQueueIterator<D, LI, WI, V> activate();
+		ILightCheckQueueIterator<LD, LCD, LI, WI, V> activate();
 
 		/**
 		 * @return Whether target is valid
 		 */
-		boolean enqueueCheck(@Nullable D desc, BlockPos pos, @Nullable EnumFacing dir);
-	}
-
-	interface ILightSpreadQueue<D, LI, WI, V>
-	{
-		ILightSpreadQueueIterator<D, LI, WI, V> activate();
+		boolean enqueueCheck(BlockPos pos, @Nullable EnumFacing dir);
 
 		/**
 		 * @return Whether target is valid
 		 */
-		boolean enqueueSpread(D desc, BlockPos pos, EnumFacing dir);
+		boolean enqueueCheck(LCD desc, BlockPos pos, @Nullable EnumFacing dir);
 	}
 
-	interface ILightInitQueue<D, LI, WI, V>
+	interface ILightSpreadQueue<LD, LI, WI, V>
 	{
-		ILightQueueIterator<D, LI, WI, V> activate();
+		ILightSpreadQueueIterator<LD, LI, WI, V> activate();
+
+		/**
+		 * @return Whether target is valid
+		 */
+		boolean enqueueSpread(LD desc, BlockPos pos, EnumFacing dir);
+	}
+
+	interface ILightInitQueue<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V>
+	{
+		ILightInitQueueIterator<LD, LCD, LI, WI, V> activate();
 
 		/**
 		 * @return Whether target is valid
 		 */
 		boolean enqueueInit(BlockPos pos);
+
+		/**
+		 * @return Whether target is valid
+		 */
+		boolean enqueueInit(LCD desc, BlockPos pos);
 	}
 
-	interface ILightQueueIterator<D, LI, WI, V>
+	interface ILightQueueIterator<LD, LI, WI, V>
 	{
 		/**
 		 * The traversal order is unspecified, in particular it does not need to match the insertion order
 		 */
 		boolean next();
 
-		ILightAccess.VirtuallySourced.NeighborAware.Extended<D, LI, WI, V> getLightAccess();
+		ILightAccess.VirtuallySourced.NeighborAware.Extended<LD, LI, WI, V> getLightAccess();
 	}
 
-	interface ILightCheckQueueIterator<D, LI, WI, V> extends ILightQueueIterator<D, LI, WI, V>
+	interface ILightInitQueueIterator<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
+	{
+		LCD getDescriptor();
+	}
+
+	interface ILightCheckQueueIterator<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
 	{
 		@Nullable
 		EnumFacing getDir();
 
-		@Nullable
-		D getDescriptor();
+		LCD getDescriptor();
 
 		void markForRecheck();
 
@@ -129,18 +143,18 @@ public interface ILightHandler<D, LI, WI, V>
 		void markForRecheck(EnumFacing dir);
 	}
 
-	interface ILightSpreadQueueIterator<D, LI, WI, V> extends ILightQueueIterator<D, LI, WI, V>
+	interface ILightSpreadQueueIterator<LD, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
 	{
 		EnumFacing getDir();
 
-		D getDescriptor();
+		LD getDescriptor();
 
 		void markForSpread(EnumFacing dir);
 	}
 
-	interface ILightUpdateQueueIterator<D, LI, WI, V> extends ILightQueueIterator<D, LI, WI, V>
+	interface ILightUpdateQueueIterator<LD, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
 	{
-		D getDescriptor();
+		LD getDescriptor();
 
 		void markForRecheck();
 

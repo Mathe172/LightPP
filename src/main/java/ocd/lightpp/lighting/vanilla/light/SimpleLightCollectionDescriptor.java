@@ -23,16 +23,31 @@
  *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.lighting.vanilla.light;
 
-import ocd.lightpp.api.vanilla.type.CachedLightProviderType;
-import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import javax.annotation.Nullable;
 
-public interface ILightStorageProvider<LD, LI, WI, C, T>
+import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
+import ocd.lightpp.util.ITypedEqual;
+
+public class SimpleLightCollectionDescriptor<D extends ITypedEqual<D>> implements ILightCollectionDescriptor<D>
 {
-	CachedLightProviderType<LD, LI, WI, C> getType();
+	private @Nullable D desc;
 
-	TypedLightStorage<LD, LI, WI, C, T> createLightStorage();
+	public void setDescriptor(@Nullable D desc)
+	{
+		this.desc = desc;
+	}
 
-	C createContainer();
+	@Override
+	public @Nullable D getDescriptor()
+	{
+		return this.desc;
+	}
+
+	@Override
+	public boolean contains(final D desc)
+	{
+		return this.desc == null || this.desc.equalsTyped(desc);
+	}
 }

@@ -25,26 +25,26 @@
 
 package ocd.lightpp.api.lighting;
 
-public interface ILightMap<D, I>
+public interface ILightMap<LD, I>
 {
 	void clear();
 
-	int get(D desc);
+	int get(LD desc);
 
-	void set(D desc, int val);
+	void set(LD desc, int val);
 
-	ILightIterator<D> iterator();
+	ILightIterator<LD> iterator();
 
 	I getInterface();
 
 	/**
 	 * Zero values may or may not be skipped
 	 */
-	interface ILightIterator<D>
+	interface ILightIterator<LD>
 	{
 		int getLight();
 
-		D getDescriptor();
+		LD getDescriptor();
 
 		boolean next();
 	}

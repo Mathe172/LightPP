@@ -25,6 +25,6 @@
 
 package ocd.lightpp.api.vanilla.type;
 
-public class LightDescriptorType<D>
+public class LightDescriptorType<LD>
 {
 }

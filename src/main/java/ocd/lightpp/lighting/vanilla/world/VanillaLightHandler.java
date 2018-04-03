@@ -41,6 +41,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.lighting.ILightAccess;
+import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.lighting.ILightHandler;
 import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
@@ -53,10 +54,10 @@ import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
 import ocd.lightpp.util.PooledIntQueue;
 import ocd.lightpp.util.PooledShortQueue;
 
-public class VanillaLightHandler<D, LI, V, C>
-	extends VanillaLightAccess<D, LI, C>
-	implements ILightHandler<D, LI, IVanillaWorldInterface.Extended, V>,
-	ILightAccess.VirtuallySourced.NeighborAware.Extended<D, LI, IVanillaWorldInterface.Extended, V>
+public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, LI, V, C>
+	extends VanillaLightAccess<LD, LCD, LI, C>
+	implements ILightHandler<LD, LCD, LI, IVanillaWorldInterface.Extended, V>,
+	ILightAccess.VirtuallySourced.NeighborAware.Extended<LD, LI, IVanillaWorldInterface.Extended, V>
 {
 	// Global section coordinates
 
@@ -190,14 +191,14 @@ public class VanillaLightHandler<D, LI, V, C>
 
 	final World world;
 
-	private final Supplier<IVanillaLightQueueDataset<D, PooledShortQueue>> dataSetProvider;
+	private final Supplier<IVanillaLightQueueDataset<LD, PooledShortQueue>> dataSetProvider;
 
 	private final Long2IntOpenHashMap sectionCache;
-	private final ArrayList<SectionContainer<D, LI, C>> sectionList = new ArrayList<>(EXPECTED_SECTION_COUNT);
+	private final ArrayList<SectionContainer<LD, LI, C>> sectionList = new ArrayList<>(EXPECTED_SECTION_COUNT);
 	private int sectionCount;
 
 	@SuppressWarnings("unchecked") // Fuck you Java
-	private final VanillaLightAccess<D, LI, C> lightAccesses[] = new VanillaLightAccess[7];
+	private final VanillaLightAccess<LD, LCD, LI, C> lightAccesses[] = new VanillaLightAccess[7];
 
 	private final MutableBlockPos cachedPos = new MutableBlockPos();
 	private final MutableBlockPos cachedNeighborPos = new MutableBlockPos();
@@ -206,21 +207,21 @@ public class VanillaLightHandler<D, LI, V, C>
 	private @Nullable Chunk lastChunk;
 
 	private long lastSectionCoords = -1;
-	private @Nullable SectionContainer<D, LI, C> lastSection;
+	private @Nullable SectionContainer<LD, LI, C> lastSection;
 
 	private final PooledIntQueue.SegmentPool indexQueueSegmentPool = new PooledIntQueue.SegmentPool(1 << 7, 1 << 7);
 	private final PooledShortQueue.SegmentPool dataQueueSegmentPool = new PooledShortQueue.SegmentPool(1 << 12, 1 << 9);
 
-	private final Deque<IVanillaLightQueueDataset<D, PooledShortQueue>> dataSetCache = new ArrayDeque<>();
+	private final Deque<IVanillaLightQueueDataset<LD, PooledShortQueue>> dataSetCache = new ArrayDeque<>();
 	private final Deque<PooledShortQueue> dataQueueCache = new ArrayDeque<>();
 
 	<WI> VanillaLightHandler(
 		final World world,
-		final ILightStorageProvider<D, LI, WI, C, NibbleArray> lightStorageProvider,
-		@Nullable final TypedCachedLightProvider<D, LI, WI, ?> skyLightProvider,
-		@Nullable final TypedEmptySectionLightPredictor<D, LI, WI, ?> emptySectionLightPredictor,
-		final TypedLightProvider<D, LI, WI> emptyLightProvider,
-		final IVanillaLightQueueDataset.Provider<D> dataSetProvider
+		final ILightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
+		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?> skyLightProvider,
+		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?> emptySectionLightPredictor,
+		final TypedLightProvider<LD, LI, WI> emptyLightProvider,
+		final IVanillaLightQueueDataset.Provider<LD> dataSetProvider
 	)
 	{
 		super(lightStorageProvider,
@@ -240,7 +241,7 @@ public class VanillaLightHandler<D, LI, V, C>
 		this.lightAccesses[6] = this;
 
 		for (int i = 0; i < 6; ++i)
-			this.lightAccesses[i] = new VanillaLightAccess<D, LI, C>(
+			this.lightAccesses[i] = new VanillaLightAccess<LD, LCD, LI, C>(
 				lightStorageProvider,
 				skyLightProvider,
 				emptySectionLightPredictor,
@@ -248,7 +249,7 @@ public class VanillaLightHandler<D, LI, V, C>
 			)
 			{
 				@Override
-				protected VanillaLightHandler<D, LI, ?, C> getLightHandler()
+				protected VanillaLightHandler<LD, LCD, LI, ?, C> getLightHandler()
 				{
 					return VanillaLightHandler.this;
 				}
@@ -258,13 +259,13 @@ public class VanillaLightHandler<D, LI, V, C>
 	}
 
 	@Override
-	protected VanillaLightHandler<D, LI, V, C> getLightHandler()
+	protected VanillaLightHandler<LD, LCD, LI, V, C> getLightHandler()
 	{
 		return this;
 	}
 
 	@Override
-	public VanillaLightAccess<D, LI, C> getNeighbor(final EnumFacing dir)
+	public VanillaLightAccess<LD, LCD, LI, C> getNeighbor(final EnumFacing dir)
 	{
 		return this.lightAccesses[dir.ordinal()];
 	}
@@ -275,7 +276,7 @@ public class VanillaLightHandler<D, LI, V, C>
 		return null;
 	}
 
-	private void updateAll(final SectionContainer<D, LI, C> section, final short data)
+	private void updateAll(final SectionContainer<LD, LI, C> section, final short data)
 	{
 		this.cachedPos.setPos(section.pos);
 		addLocalCoords(this.cachedPos, data);
@@ -287,7 +288,7 @@ public class VanillaLightHandler<D, LI, V, C>
 			final EnumFacing dir = EnumFacing.VALUES[i];
 
 			short neighborData = (short) (data + lNeighborShifts[i]);
-			final SectionContainer<D, LI, C> neighborSection;
+			final SectionContainer<LD, LI, C> neighborSection;
 
 			if ((neighborData & lCheckMask) == lCheckRefs[i])
 				neighborSection = section;
@@ -305,7 +306,7 @@ public class VanillaLightHandler<D, LI, V, C>
 
 	void updateAll()
 	{
-		for (final VanillaLightAccess<D, LI, C> lightAccess : this.lightAccesses)
+		for (final VanillaLightAccess<LD, LCD, LI, C> lightAccess : this.lightAccesses)
 			lightAccess.update();
 	}
 
@@ -322,9 +323,9 @@ public class VanillaLightHandler<D, LI, V, C>
 		return this.lastChunk;
 	}
 
-	private SectionContainer<D, LI, C> createSection(final BlockPos pos, final long sectionCoords, @Nullable final Chunk chunk)
+	private SectionContainer<LD, LI, C> createSection(final BlockPos pos, final long sectionCoords, @Nullable final Chunk chunk)
 	{
-		final SectionContainer<D, LI, C> section;
+		final SectionContainer<LD, LI, C> section;
 
 		if (this.sectionCount == this.sectionList.size())
 		{
@@ -345,13 +346,13 @@ public class VanillaLightHandler<D, LI, V, C>
 		return section;
 	}
 
-	private SectionContainer<D, LI, C> getSection(final int index)
+	private SectionContainer<LD, LI, C> getSection(final int index)
 	{
 		return this.sectionList.get(index);
 	}
 
-	SectionContainer<D, LI, C> getSection(
-		final SectionContainer<D, LI, C> section,
+	SectionContainer<LD, LI, C> getSection(
+		final SectionContainer<LD, LI, C> section,
 		final EnumFacing dir,
 		@Nullable final Chunk chunk
 	)
@@ -359,8 +360,8 @@ public class VanillaLightHandler<D, LI, V, C>
 		return this.getSection(section, dir, chunk, false);
 	}
 
-	SectionContainer<D, LI, C> getSection(
-		final SectionContainer<D, LI, C> section,
+	SectionContainer<LD, LI, C> getSection(
+		final SectionContainer<LD, LI, C> section,
 		final EnumFacing dir,
 		final boolean fetchChunk
 	)
@@ -368,14 +369,14 @@ public class VanillaLightHandler<D, LI, V, C>
 		return this.getSection(section, dir, null, fetchChunk);
 	}
 
-	private SectionContainer<D, LI, C> getSection(
-		final SectionContainer<D, LI, C> section,
+	private SectionContainer<LD, LI, C> getSection(
+		final SectionContainer<LD, LI, C> section,
 		final EnumFacing dir,
 		@Nullable final Chunk chunk,
 		final boolean fetchChunk
 	)
 	{
-		SectionContainer<D, LI, C> ret = this.getExistingSection(section, dir);
+		SectionContainer<LD, LI, C> ret = this.getExistingSection(section, dir);
 
 		if (ret != null)
 			return ret;
@@ -389,9 +390,9 @@ public class VanillaLightHandler<D, LI, V, C>
 		return ret;
 	}
 
-	SectionContainer<D, LI, C> getSection(final long sectionCoords, final boolean fetchChunk)
+	SectionContainer<LD, LI, C> getSection(final long sectionCoords, final boolean fetchChunk)
 	{
-		final SectionContainer<D, LI, C> ret = this.getExistingSection(sectionCoords);
+		final SectionContainer<LD, LI, C> ret = this.getExistingSection(sectionCoords);
 
 		if (ret != null)
 			return ret;
@@ -401,13 +402,13 @@ public class VanillaLightHandler<D, LI, V, C>
 		return this.createSection(this.cachedPos, sectionCoords, fetchChunk ? this.getChunk(this.cachedPos) : null);
 	}
 
-	@Nullable SectionContainer<D, LI, C> getExistingSection(final long sectionCoords)
+	@Nullable SectionContainer<LD, LI, C> getExistingSection(final long sectionCoords)
 	{
 		if (sectionCoords == this.lastSectionCoords)
 			return this.lastSection;
 
 		final int index = this.sectionCache.get(sectionCoords);
-		final SectionContainer<D, LI, C> section = index == -1 ? null : this.getSection(index);
+		final SectionContainer<LD, LI, C> section = index == -1 ? null : this.getSection(index);
 
 		this.lastSectionCoords = sectionCoords;
 		this.lastSection = section;
@@ -415,9 +416,9 @@ public class VanillaLightHandler<D, LI, V, C>
 		return section;
 	}
 
-	@Nullable SectionContainer<D, LI, C> getExistingSection(final SectionContainer<D, LI, C> section, final EnumFacing dir)
+	@Nullable SectionContainer<LD, LI, C> getExistingSection(final SectionContainer<LD, LI, C> section, final EnumFacing dir)
 	{
-		SectionContainer<D, LI, C> ret = section.getNeighbor(dir);
+		SectionContainer<LD, LI, C> ret = section.getNeighbor(dir);
 
 		if (ret != null)
 		{
@@ -442,14 +443,14 @@ public class VanillaLightHandler<D, LI, V, C>
 		return pos.getY() >= 0 && pos.getY() < 256;
 	}
 
-	private void initSectionContainer(final SectionContainer<D, LI, C> section, final BlockPos pos, final long sectionCoords, @Nullable final Chunk chunk)
+	private void initSectionContainer(final SectionContainer<LD, LI, C> section, final BlockPos pos, final long sectionCoords, @Nullable final Chunk chunk)
 	{
 		section.init(this.isValid(pos), pos, sectionCoords);
 
 		this.initSectionContainer(section, chunk);
 	}
 
-	private void initSectionContainer(final SectionContainer<D, LI, C> section, @Nullable final Chunk chunk)
+	private void initSectionContainer(final SectionContainer<LD, LI, C> section, @Nullable final Chunk chunk)
 	{
 		section.chunk = chunk;
 
@@ -492,7 +493,7 @@ public class VanillaLightHandler<D, LI, V, C>
 		}
 	}
 
-	IVanillaLightQueueDataset<D, PooledShortQueue> getDataSet()
+	IVanillaLightQueueDataset<LD, PooledShortQueue> getDataSet()
 	{
 		if (this.dataSetCache.isEmpty())
 			return this.dataSetProvider.get();
@@ -500,7 +501,7 @@ public class VanillaLightHandler<D, LI, V, C>
 		return this.dataSetCache.pop();
 	}
 
-	void releaseDataSet(final IVanillaLightQueueDataset<D, PooledShortQueue> dataSet)
+	void releaseDataSet(final IVanillaLightQueueDataset<LD, PooledShortQueue> dataSet)
 	{
 		if (this.dataSetCache.size() < EXPECTED_DATASET_COUNT)
 			this.dataSetCache.push(dataSet);
@@ -521,16 +522,16 @@ public class VanillaLightHandler<D, LI, V, C>
 	}
 
 	private class VanillaLightUpdateQueue
-		implements ILightUpdateQueue<D, LI, IVanillaWorldInterface.Extended, V>,
-		ILightUpdateQueueIterator<D, LI, IVanillaWorldInterface.Extended, V>
+		implements ILightUpdateQueue<LD, LI, IVanillaWorldInterface.Extended, V>,
+		ILightUpdateQueueIterator<LD, LI, IVanillaWorldInterface.Extended, V>
 	{
-		private final ArrayList<IVanillaLightQueueDataset<D, PooledShortQueue>> updates = new ArrayList<>(EXPECTED_SECTION_COUNT);
+		private final ArrayList<IVanillaLightQueueDataset<LD, PooledShortQueue>> updates = new ArrayList<>(EXPECTED_SECTION_COUNT);
 		private final PooledIntQueue updateIndices = new PooledIntQueue(VanillaLightHandler.this.indexQueueSegmentPool);
 
 		// Iterator state
-		private IVanillaLightQueueDataset<D, PooledShortQueue> curDataset;
+		private IVanillaLightQueueDataset<LD, PooledShortQueue> curDataset;
 		private PooledShortQueue curQueue;
-		private SectionContainer<D, LI, C> curSection;
+		private SectionContainer<LD, LI, C> curSection;
 
 		@Override
 		public boolean next()
@@ -582,13 +583,13 @@ public class VanillaLightHandler<D, LI, V, C>
 		}
 
 		@Override
-		public D getDescriptor()
+		public LD getDescriptor()
 		{
 			return this.curDataset.getDesc();
 		}
 
 		@Override
-		public VirtuallySourced.NeighborAware.Extended<D, LI, IVanillaWorldInterface.Extended, V> getLightAccess()
+		public VirtuallySourced.NeighborAware.Extended<LD, LI, IVanillaWorldInterface.Extended, V> getLightAccess()
 		{
 			return VanillaLightHandler.this;
 		}
@@ -604,38 +605,38 @@ public class VanillaLightHandler<D, LI, V, C>
 		}
 
 		@Override
-		public ILightUpdateQueueIterator<D, LI, IVanillaWorldInterface.Extended, V> activate()
+		public ILightUpdateQueueIterator<LD, LI, IVanillaWorldInterface.Extended, V> activate()
 		{
 			return this;
 		}
 
 		@Override
-		public void enqueueDarkening(final D desc, final int oldLight)
+		public void enqueueDarkening(final LD desc, final int oldLight)
 		{
 			this.enqueue(desc, null);
 		}
 
 		@Override
-		public void enqueueDarkening(final D desc, final EnumFacing dir, final int oldLight)
+		public void enqueueDarkening(final LD desc, final EnumFacing dir, final int oldLight)
 		{
 			this.enqueue(desc, dir);
 		}
 
 		@Override
-		public void enqueueBrightening(final D desc, final int newLight)
+		public void enqueueBrightening(final LD desc, final int newLight)
 		{
 			this.enqueue(desc, null);
 		}
 
 		@Override
-		public void enqueueBrightening(final D desc, final EnumFacing dir, final int newLight)
+		public void enqueueBrightening(final LD desc, final EnumFacing dir, final int newLight)
 		{
 			this.enqueue(desc, dir);
 		}
 
-		private void enqueue(final D desc, @Nullable final EnumFacing dir)
+		private void enqueue(final LD desc, @Nullable final EnumFacing dir)
 		{
-			final VanillaLightAccess<D, LI, C> lightAccess = dir == null ? VanillaLightHandler.this : VanillaLightHandler.this.getNeighbor(dir);
+			final VanillaLightAccess<LD, LCD, LI, C> lightAccess = dir == null ? VanillaLightHandler.this : VanillaLightHandler.this.getNeighbor(dir);
 
 			final int sectionIndex = lightAccess.section.index;
 
@@ -647,7 +648,7 @@ public class VanillaLightHandler<D, LI, V, C>
 					this.updates.add(null);
 			}
 
-			IVanillaLightQueueDataset<D, PooledShortQueue> dataSet = this.updates.get(sectionIndex);
+			IVanillaLightQueueDataset<LD, PooledShortQueue> dataSet = this.updates.get(sectionIndex);
 
 			if (dataSet == null)
 			{
@@ -662,25 +663,25 @@ public class VanillaLightHandler<D, LI, V, C>
 	}
 
 	@Override
-	public ILightUpdateQueue<D, LI, IVanillaWorldInterface.Extended, V> createUpdateQueue()
+	public ILightUpdateQueue<LD, LI, IVanillaWorldInterface.Extended, V> createUpdateQueue()
 	{
 		return new VanillaLightUpdateQueue();
 	}
 
 	@Override
-	public ILightCheckQueue<D, LI, IVanillaWorldInterface.Extended, V> createCheckQueue()
+	public ILightCheckQueue<LD, LCD, LI, IVanillaWorldInterface.Extended, V> createCheckQueue()
 	{
 		return null;
 	}
 
 	@Override
-	public ILightSpreadQueue<D, LI, IVanillaWorldInterface.Extended, V> createSpreadQueue()
+	public ILightSpreadQueue<LD, LI, IVanillaWorldInterface.Extended, V> createSpreadQueue()
 	{
 		return null;
 	}
 
 	@Override
-	public ILightInitQueue<D, LI, IVanillaWorldInterface.Extended, V> createInitQueue()
+	public ILightInitQueue<LD, LCD, LI, IVanillaWorldInterface.Extended, V> createInitQueue()
 	{
 		return null;
 	}
@@ -690,7 +691,7 @@ public class VanillaLightHandler<D, LI, V, C>
 	{
 		for (int i = 0; i < this.sectionCount; ++i)
 		{
-			final SectionContainer<D, LI, C> section = this.sectionList.get(i);
+			final SectionContainer<LD, LI, C> section = this.sectionList.get(i);
 			this.initSectionContainer(section, this.getChunk(section.pos));
 		}
 	}

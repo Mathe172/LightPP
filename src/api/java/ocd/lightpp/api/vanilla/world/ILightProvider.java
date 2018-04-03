@@ -27,9 +27,9 @@ package ocd.lightpp.api.vanilla.world;
 import net.minecraft.util.math.BlockPos;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 
-public interface ILightProvider<D, LI, WI>
+public interface ILightProvider<LD, LI, WI>
 {
-	Positioned<D, LI> bind(BlockPos pos);
+	Positioned<LD, LI> bind(BlockPos pos);
 
 	WI getStorageInterface(BlockPos pos);
 
@@ -38,22 +38,22 @@ public interface ILightProvider<D, LI, WI>
 		Positioned<D, LI> bind(BlockPos pos, C container);
 	}
 
-	interface Positioned<D, LI>
+	interface Positioned<LD, LI>
 	{
-		int getLight(final D desc);
+		int getLight(final LD desc);
 
-		ILightIterator<D> getLightIterator();
+		ILightIterator<LD> getLightIterator();
 
 		LI getInterface();
 
-		interface Writeable<D, LI> extends Positioned<D, LI>
+		interface Writeable<LD, LI> extends Positioned<LD, LI>
 		{
-			void set(D desc, int val);
+			void set(LD desc, int val);
 
 			/**
-			 * Called after the last {@link #set} of type D in a bulk operation
+			 * Called after the last {@link #set} of type LD in a bulk operation
 			 */
-			default void notifyLightSet(final D desc)
+			default void notifyLightSet(final LD desc)
 			{
 			}
 

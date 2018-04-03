@@ -28,22 +28,22 @@ import java.util.function.Supplier;
 
 import ocd.lightpp.api.util.IEmpty;
 
-public interface IVanillaLightQueueDataset<D, Q extends IEmpty>
+public interface IVanillaLightQueueDataset<LD, Q extends IEmpty>
 {
-	Q get(D desc);
+	Q get(LD desc);
 
-	D getDesc();
+	LD getDesc();
 
 	Q getQueue();
 
 	/**
 	 * Discards the current queue iff it is {@link IEmpty#isEmpty() empty}
-	 * Returns one of the queues that have been {@link #get(D) requested} since they were last discarded
+	 * Returns one of the queues that have been {@link #get(LD) requested} since they were last discarded
 	 */
 	boolean next();
 
-	interface Provider<D>
+	interface Provider<LD>
 	{
-		<Q extends IEmpty> IVanillaLightQueueDataset<D, Q> get(Supplier<Q> queueProvider);
+		<Q extends IEmpty> IVanillaLightQueueDataset<LD, Q> get(Supplier<Q> queueProvider);
 	}
 }

@@ -27,12 +27,12 @@ package ocd.lightpp.api.vanilla.type;
 
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 
-public class TypedLightStorage<D, LI, WI, C, T>
+public class TypedLightStorage<LD, LI, WI, C, T>
 {
-	public final CachedLightProviderType<D, LI, WI, C> type;
-	public final ILightStorage<D, LI, WI, C, T> storage;
+	public final CachedLightProviderType<LD, LI, WI, C> type;
+	public final ILightStorage<LD, LI, WI, C, T> storage;
 
-	public TypedLightStorage(final CachedLightProviderType<D, LI, WI, C> type, final ILightStorage<D, LI, WI, C, T> storage)
+	public TypedLightStorage(final CachedLightProviderType<LD, LI, WI, C> type, final ILightStorage<LD, LI, WI, C, T> storage)
 	{
 		this.type = type;
 		this.storage = storage;

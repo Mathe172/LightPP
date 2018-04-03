@@ -28,23 +28,23 @@ package ocd.lightpp.api.vanilla.type;
 import ocd.lightpp.api.vanilla.world.ILightProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Cached;
 
-public class CachedLightProviderType<D, LI, WI, C>
+public class CachedLightProviderType<LD, LI, WI, C>
 {
-	public final LightProviderType<D, LI, WI> lightProviderType;
+	public final LightProviderType<LD, LI, WI> lightProviderType;
 	public final ContainerType<C> containerType;
 
-	public CachedLightProviderType(final LightProviderType<D, LI, WI> lightProviderType, final ContainerType<C> containerType)
+	public CachedLightProviderType(final LightProviderType<LD, LI, WI> lightProviderType, final ContainerType<C> containerType)
 	{
 		this.lightProviderType = lightProviderType;
 		this.containerType = containerType;
 	}
 
-	public static abstract class TypedCachedLightProvider<D, LI, WI, C>
+	public static abstract class TypedCachedLightProvider<LD, LI, WI, C>
 	{
-		public final CachedLightProviderType<D, LI, WI, C> type;
-		public final ILightProvider.Cached<D, LI, WI, C> provider;
+		public final CachedLightProviderType<LD, LI, WI, C> type;
+		public final ILightProvider.Cached<LD, LI, WI, C> provider;
 
-		public TypedCachedLightProvider(final CachedLightProviderType<D, LI, WI, C> type, final Cached<D, LI, WI, C> provider)
+		public TypedCachedLightProvider(final CachedLightProviderType<LD, LI, WI, C> type, final Cached<LD, LI, WI, C> provider)
 		{
 			this.type = type;
 			this.provider = provider;

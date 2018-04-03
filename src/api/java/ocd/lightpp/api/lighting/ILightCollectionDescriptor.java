@@ -23,16 +23,16 @@
  *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.api.lighting;
 
-import ocd.lightpp.api.vanilla.type.CachedLightProviderType;
-import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import javax.annotation.Nullable;
 
-public interface ILightStorageProvider<LD, LI, WI, C, T>
+public interface ILightCollectionDescriptor<LD>
 {
-	CachedLightProviderType<LD, LI, WI, C> getType();
+	/**
+	 * @return The unique element if this is a singleton, <code>null</code> otherwise
+	 */
+	@Nullable LD getDescriptor();
 
-	TypedLightStorage<LD, LI, WI, C, T> createLightStorage();
-
-	C createContainer();
+	boolean contains(LD desc);
 }

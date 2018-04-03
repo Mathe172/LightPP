@@ -31,10 +31,10 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 
-public interface ILightStorage<D, LI, WI, C, T> extends ILightProvider.Cached<D, LI, WI, C>
+public interface ILightStorage<LD, LI, WI, C, T> extends ILightProvider.Cached<LD, LI, WI, C>
 {
 	@Override
-	Positioned.Writeable<D, LI> bind(BlockPos pos, C container);
+	Positioned.Writeable<LD, LI> bind(BlockPos pos, C container);
 
 	/**
 	 * @deprecated Legacy support
