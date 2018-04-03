@@ -28,11 +28,11 @@ import java.util.function.Supplier;
 
 import ocd.lightpp.api.util.IEmpty;
 import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
-import ocd.lightpp.api.vanilla.world.IVanillaLightQueueDataset;
+import ocd.lightpp.api.vanilla.world.ILightQueueDataset;
 
-public class VanillaLightQueueDataset<Q extends IEmpty> implements IVanillaLightQueueDataset<IVanillaLightDescriptor, Q>
+public class VanillaLightQueueDataset<Q extends IEmpty> implements ILightQueueDataset<IVanillaLightDescriptor, Q>
 {
-	private final Supplier<Q> supp;
+	private final Supplier<Q> provider;
 
 	private final VanillaLightDescriptor desc = new VanillaLightDescriptor();
 	private int curIndex;
@@ -40,16 +40,19 @@ public class VanillaLightQueueDataset<Q extends IEmpty> implements IVanillaLight
 	@SuppressWarnings("unchecked") // Thanks, Java...
 	private final Q[] queues = (Q[]) new Object[IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length];
 
-	public VanillaLightQueueDataset(final Supplier<Q> supp)
+	public VanillaLightQueueDataset(final Supplier<Q> provider)
 	{
-		this.supp = supp;
+		this.provider = provider;
+
+		this.curIndex = 0;
+		this.desc.setSkyBlock(IVanillaLightDescriptor.SKY_BLOCKS_VALUES[0]);
 	}
 
 	@Override
 	public Q get(final IVanillaLightDescriptor desc)
 	{
 		final int i = desc.getSkyBlock().ordinal();
-		return this.queues[i] == null ? this.queues[i] = this.supp.get() : this.queues[i];
+		return this.queues[i] == null ? this.queues[i] = this.provider.get() : this.queues[i];
 	}
 
 	@Override
@@ -67,8 +70,10 @@ public class VanillaLightQueueDataset<Q extends IEmpty> implements IVanillaLight
 	@Override
 	public boolean next()
 	{
-		if (this.queues[this.curIndex].isEmpty())
-			this.queues[this.curIndex] = null;
+		if (!this.queues[this.curIndex].isEmpty())
+			return true;
+
+		this.queues[this.curIndex] = null;
 
 		for (int i = 0; i < IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length; ++i)
 		{
@@ -83,10 +88,10 @@ public class VanillaLightQueueDataset<Q extends IEmpty> implements IVanillaLight
 		return false;
 	}
 
-	public static class Provider implements IVanillaLightQueueDataset.Provider<IVanillaLightDescriptor>
+	public static class Provider implements ILightQueueDataset.Provider<IVanillaLightDescriptor>
 	{
 		@Override
-		public <Q extends IEmpty> IVanillaLightQueueDataset<IVanillaLightDescriptor, Q> get(final Supplier<Q> queueProvider)
+		public <Q extends IEmpty> ILightQueueDataset<IVanillaLightDescriptor, Q> get(final Supplier<Q> queueProvider)
 		{
 			return new VanillaLightQueueDataset<>(queueProvider);
 		}

@@ -78,11 +78,15 @@ public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, L
 		ILightCheckQueueIterator<LD, LCD, LI, WI, V> activate();
 
 		/**
+		 * Enqueued pos must be shifted by dir and dir must be inverted!
+		 *
 		 * @return Whether target is valid
 		 */
 		boolean enqueueCheck(BlockPos pos, @Nullable EnumFacing dir);
 
 		/**
+		 * Enqueued pos must be shifted by dir and dir must be inverted!
+		 *
 		 * @return Whether target is valid
 		 */
 		boolean enqueueCheck(LCD desc, BlockPos pos, @Nullable EnumFacing dir);
@@ -113,8 +117,10 @@ public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, L
 		boolean enqueueInit(LCD desc, BlockPos pos);
 	}
 
-	interface ILightQueueIterator<LD, LI, WI, V>
+	interface ILightQueueIterator<D, LD, LI, WI, V>
 	{
+		D getDescriptor();
+
 		/**
 		 * The traversal order is unspecified, in particular it does not need to match the insertion order
 		 */
@@ -123,17 +129,14 @@ public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, L
 		ILightAccess.VirtuallySourced.NeighborAware.Extended<LD, LI, WI, V> getLightAccess();
 	}
 
-	interface ILightInitQueueIterator<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
+	interface ILightInitQueueIterator<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V> extends ILightQueueIterator<LCD, LD, LI, WI, V>
 	{
-		LCD getDescriptor();
 	}
 
-	interface ILightCheckQueueIterator<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
+	interface ILightCheckQueueIterator<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V> extends ILightQueueIterator<LCD, LD, LI, WI, V>
 	{
 		@Nullable
 		EnumFacing getDir();
-
-		LCD getDescriptor();
 
 		void markForRecheck();
 
@@ -143,19 +146,15 @@ public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, L
 		void markForRecheck(EnumFacing dir);
 	}
 
-	interface ILightSpreadQueueIterator<LD, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
+	interface ILightSpreadQueueIterator<LD, LI, WI, V> extends ILightQueueIterator<LD, LD, LI, WI, V>
 	{
 		EnumFacing getDir();
-
-		LD getDescriptor();
 
 		void markForSpread(EnumFacing dir);
 	}
 
-	interface ILightUpdateQueueIterator<LD, LI, WI, V> extends ILightQueueIterator<LD, LI, WI, V>
+	interface ILightUpdateQueueIterator<LD, LI, WI, V> extends ILightQueueIterator<LD, LD, LI, WI, V>
 	{
-		LD getDescriptor();
-
 		void markForRecheck();
 
 		void markForSpread(EnumFacing dir);

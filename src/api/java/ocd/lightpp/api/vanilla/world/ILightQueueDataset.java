@@ -26,9 +26,10 @@ package ocd.lightpp.api.vanilla.world;
 
 import java.util.function.Supplier;
 
+import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.util.IEmpty;
 
-public interface IVanillaLightQueueDataset<LD, Q extends IEmpty>
+public interface ILightQueueDataset<LD, Q extends IEmpty>
 {
 	Q get(LD desc);
 
@@ -44,6 +45,16 @@ public interface IVanillaLightQueueDataset<LD, Q extends IEmpty>
 
 	interface Provider<LD>
 	{
-		<Q extends IEmpty> IVanillaLightQueueDataset<LD, Q> get(Supplier<Q> queueProvider);
+		<Q extends IEmpty> ILightQueueDataset<LD, Q> get(Supplier<Q> queueProvider);
+	}
+
+	interface ILightCollectionQueueDataset<LD, LCD extends ILightCollectionDescriptor<LD>, Q extends IEmpty> extends ILightQueueDataset<LCD, Q>
+	{
+		Q get();
+
+		interface Provider<LD, LCD extends ILightCollectionDescriptor<LD>>
+		{
+			<Q extends IEmpty> ILightCollectionQueueDataset<LD, LCD, Q> get(Supplier<Q> queueProvider);
+		}
 	}
 }
