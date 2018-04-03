@@ -24,6 +24,7 @@
 
 package ocd.lightpp.lighting.vanilla.light;
 
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 import net.minecraft.util.EnumFacing;
@@ -53,9 +54,11 @@ public class VanillaLightPropagator implements ILightPropagator<IVanillaLightDes
 
 	private final ILightMap<IVanillaLightDescriptor, IVanillaLightMap> vLightMap;
 
-	public VanillaLightPropagator(final int worldMaxLight)
+	public VanillaLightPropagator(final int worldMaxLight, Supplier<ILightMap<IVanillaLightDescriptor, IVanillaLightMap>> lightMapProvider)
 	{
 		this.worldMaxLight = worldMaxLight;
+
+		this.vLightMap = lightMapProvider.get();
 	}
 
 	private void calcSpread(

@@ -35,6 +35,7 @@ import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.ILightProvider;
 import ocd.lightpp.lighting.vanilla.light.VanillaSkyLightProvider.Container;
+import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 
 public class VanillaSkyLightProvider
 	implements ILightProvider.Cached<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Container>,
