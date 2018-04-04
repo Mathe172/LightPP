@@ -84,7 +84,7 @@ public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, 
 	public LightingEngine(
 		final ILightHandler<LD, LCD, LI, WI, V> lightHandler,
 		final int maxLight,
-		final ILightPropagator<? super LD, ? super LCD, ? super MI, ? super LI, WI, ? super V> lightPropagator,
+		final ILightPropagator<? super LD, ? super LCD, ? super MI, ? super LI, ? super WI, ? super V> lightPropagator,
 		final Supplier<? extends ILightMap<LD, MI>> lightMapProvider,
 		final Profiler profiler)
 	{
