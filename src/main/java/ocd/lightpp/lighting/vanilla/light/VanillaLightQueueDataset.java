@@ -27,7 +27,6 @@ package ocd.lightpp.lighting.vanilla.light;
 import java.util.function.Supplier;
 
 import ocd.lightpp.api.util.IEmpty;
-import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 import ocd.lightpp.api.vanilla.world.ILightQueueDataset;
 
 public class VanillaLightQueueDataset<Q extends IEmpty> implements ILightQueueDataset<IVanillaLightDescriptor, Q>

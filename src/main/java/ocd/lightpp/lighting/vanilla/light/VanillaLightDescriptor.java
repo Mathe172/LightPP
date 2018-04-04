@@ -25,10 +25,8 @@
 package ocd.lightpp.lighting.vanilla.light;
 
 import net.minecraft.world.EnumSkyBlock;
-import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
-import ocd.lightpp.util.ITypedEqual;
 
-public class VanillaLightDescriptor implements IVanillaLightDescriptor, ITypedEqual<IVanillaLightDescriptor>
+public class VanillaLightDescriptor implements IVanillaLightDescriptor
 {
 	private EnumSkyBlock skyBlock;
 

@@ -29,9 +29,9 @@ import java.util.function.Supplier;
 
 import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.util.IEmpty;
+import ocd.lightpp.api.util.ITypedEqual;
 import ocd.lightpp.api.vanilla.world.ILightQueueDataset;
 import ocd.lightpp.api.vanilla.world.ILightQueueDataset.ILightCollectionQueueDataset;
-import ocd.lightpp.util.ITypedEqual;
 
 public class SimpleLightCollectionQueueDataSet<LD extends ITypedEqual<LD>, Q extends IEmpty>
 	implements ILightCollectionQueueDataset<LD, ILightCollectionDescriptor<LD>, Q>

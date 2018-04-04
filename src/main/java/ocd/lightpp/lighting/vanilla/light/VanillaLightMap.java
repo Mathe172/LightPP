@@ -29,7 +29,6 @@ import java.util.Arrays;
 
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap;
-import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 import ocd.lightpp.api.vanilla.light.IVanillaLightMap;
 
 public class VanillaLightMap implements ILightMap<IVanillaLightDescriptor, IVanillaLightMap>, IVanillaLightMap

@@ -20,15 +20,12 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.api.vanilla.light;
+package ocd.lightpp.api.util;
 
-import net.minecraft.world.EnumSkyBlock;
-
-public interface IVanillaLightDescriptor
+public interface ITypedEqual<T>
 {
-	EnumSkyBlock getSkyBlock();
-
-	EnumSkyBlock[] SKY_BLOCKS_VALUES = EnumSkyBlock.values();
+	boolean equalsTyped(T obj);
 }

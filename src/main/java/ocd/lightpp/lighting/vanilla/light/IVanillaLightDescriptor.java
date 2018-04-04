@@ -23,9 +23,14 @@
  *
  */
 
-package ocd.lightpp.util;
+package ocd.lightpp.lighting.vanilla.light;
 
-public interface ITypedEqual<T>
+import net.minecraft.world.EnumSkyBlock;
+import ocd.lightpp.api.util.ITypedEqual;
+
+public interface IVanillaLightDescriptor extends ITypedEqual<IVanillaLightDescriptor>
 {
-	boolean equalsTyped(T obj);
+	EnumSkyBlock getSkyBlock();
+
+	EnumSkyBlock[] SKY_BLOCKS_VALUES = EnumSkyBlock.values();
 }

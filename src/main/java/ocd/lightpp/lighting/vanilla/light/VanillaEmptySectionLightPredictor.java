@@ -30,7 +30,6 @@ import java.util.function.Supplier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
-import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;

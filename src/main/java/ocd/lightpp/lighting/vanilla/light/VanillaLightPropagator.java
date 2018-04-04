@@ -38,7 +38,6 @@ import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.lighting.ILightMap;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.lighting.ILightPropagator;
-import ocd.lightpp.api.vanilla.light.IVanillaLightDescriptor;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.light.IVanillaLightMap;
 import ocd.lightpp.api.vanilla.light.IVanillaLightSource;

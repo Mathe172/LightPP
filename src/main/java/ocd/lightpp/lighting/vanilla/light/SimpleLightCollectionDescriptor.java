@@ -28,13 +28,13 @@ package ocd.lightpp.lighting.vanilla.light;
 import javax.annotation.Nullable;
 
 import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
-import ocd.lightpp.util.ITypedEqual;
+import ocd.lightpp.api.util.ITypedEqual;
 
 public class SimpleLightCollectionDescriptor<D extends ITypedEqual<D>> implements ILightCollectionDescriptor<D>
 {
 	private @Nullable D desc;
 
-	public void setDescriptor(@Nullable D desc)
+	public void setDescriptor(@Nullable final D desc)
 	{
 		this.desc = desc;
 	}
