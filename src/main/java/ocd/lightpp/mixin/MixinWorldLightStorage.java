@@ -47,25 +47,25 @@ import ocd.lightpp.lighting.vanilla.world.VanillaWorldLightHelper;
 @Mixin(World.class)
 public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvider
 {
-	private VanillaWorldLightHelper<?, ?, ?, ?, ?, ?> lightManager;
+	private VanillaWorldLightHelper<?, ?, ?, ?, ?, ?, ?, ?, ?> lightManager;
 
 	private final MutableBlockPos cachedPos = new MutableBlockPos();
 	private final MutableBlockPos cachedUpperPos = new MutableBlockPos();
 
 	@Override
-	public TypedLightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider()
+	public TypedLightStorageProvider<?, ?, ?, ?, ?, NibbleArray> getLightStorageProvider()
 	{
 		return this.lightManager.lightStorageProvider;
 	}
 
 	@Override
-	public @Nullable TypedCachedLightProvider<?, ?, ?, ?> getSkyLightProvider()
+	public @Nullable TypedCachedLightProvider<?, ?, ?, ?, ?> getSkyLightProvider()
 	{
 		return this.lightManager.skyLightProvider;
 	}
 
 	@Override
-	public @Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?> getEmptySectionLightPredictor()
+	public @Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?, ?> getEmptySectionLightPredictor()
 	{
 		return this.lightManager.emptySectionLightPredictor;
 	}
@@ -101,7 +101,7 @@ public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvid
 
 		if (blockStorage != null)
 		{
-			final TypedLightStorage<?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
+			final TypedLightStorage<?, ?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
 			return this.lightManager.getWorldLightInterface(lightStorage, pos);
 		}
 
@@ -111,7 +111,7 @@ public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvid
 
 			if (upperBlockStorage != null)
 			{
-				final TypedLightStorage<?, ?, ?, ?, ?> upperLightStorage = ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage();
+				final TypedLightStorage<?, ?, ?, ?, ?, ?> upperLightStorage = ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage();
 				return this.lightManager.getWorldLightInterface(
 					pos,
 					upperLightStorage,
@@ -126,7 +126,7 @@ public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvid
 	@Override
 	public void createLightStorage(final ExtendedBlockStorage blockStorage)
 	{
-		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.lightManager.createLightStorage();
+		final TypedLightStorage<?, ?, ?, ?, ?, NibbleArray> lightStorage = this.lightManager.createLightStorage();
 		((IVanillaLightStorageHolder) blockStorage).setLightStorage(lightStorage);
 	}
 
@@ -137,7 +137,7 @@ public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvid
 		@Nullable final ExtendedBlockStorage upperBlockStorage
 	)
 	{
-		final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.lightManager.createInitLightStorage(
+		final TypedLightStorage<?, ?, ?, ?, ?, NibbleArray> lightStorage = this.lightManager.createInitLightStorage(
 			this.cachedPos.setPos(chunk.x << 4, blockStorage.getYLocation(), chunk.z << 4),
 			upperBlockStorage == null ? null : ((IVanillaLightStorageHolder) upperBlockStorage).getLightStorage(),
 			upperBlockStorage == null ? this.cachedPos : this.cachedUpperPos.setPos(chunk.x << 4, upperBlockStorage.getYLocation(), chunk.z << 4)

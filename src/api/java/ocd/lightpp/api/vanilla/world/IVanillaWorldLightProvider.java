@@ -38,11 +38,11 @@ import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 
 public interface IVanillaWorldLightProvider
 {
-	TypedLightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider();
+	TypedLightStorageProvider<?, ?, ?, ?, ?, NibbleArray> getLightStorageProvider();
 
-	@Nullable TypedCachedLightProvider<?, ?, ?, ?> getSkyLightProvider();
+	@Nullable TypedCachedLightProvider<?, ?, ?, ?, ?> getSkyLightProvider();
 
-	@Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?> getEmptySectionLightPredictor();
+	@Nullable TypedEmptySectionLightPredictor<?, ?, ?, ?, ?> getEmptySectionLightPredictor();
 
 	TypedLightProvider<?, ?, ?> getEmptyLightProvider();
 

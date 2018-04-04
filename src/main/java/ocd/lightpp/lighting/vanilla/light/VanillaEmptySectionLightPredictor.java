@@ -31,14 +31,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
-import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.lighting.vanilla.light.VanillaEmptySectionLightPredictor.Container;
 import ocd.lightpp.lighting.vanilla.light.VanillaEmptySectionLightPredictor.Container.Extended;
 
 public class VanillaEmptySectionLightPredictor
-	implements IEmptySectionLightPredictor<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Container.Extended>
+	implements IEmptySectionLightPredictor<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface, Container.Extended, Container>
 {
 	@Override
 	public Positioned<IVanillaLightDescriptor, IVanillaLightInterface> bind(
@@ -47,7 +46,7 @@ public class VanillaEmptySectionLightPredictor
 		final IVanillaLightInterface lightInterface
 	)
 	{
-		return new Container.Extended().bind(lightInterface);
+		return this.bind(pos, upperPos, lightInterface, this.createLightContainer());
 	}
 
 	@Override
@@ -62,23 +61,35 @@ public class VanillaEmptySectionLightPredictor
 	}
 
 	@Override
-	public IVanillaLightWorldInterface getStorageInterface(
+	public IVanillaLightInterface getWorldLightInterface(
 		final BlockPos pos,
 		final BlockPos upperPos,
 		final IVanillaLightInterface lightInterface
 	)
 	{
-		return this.createContainer().bind(lightInterface);
+		return this.getWorldLightInterface(pos, upperPos, this.createWorldLightContainer());
 	}
 
 	@Override
-	public Extended createContainer()
+	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos, final BlockPos upperPos, final IVanillaLightInterface lightInterface, final Container container)
+	{
+		return container.bind(lightInterface);
+	}
+
+	@Override
+	public Extended createLightContainer()
 	{
 		return new Container.Extended();
 	}
 
+	@Override
+	public Container createWorldLightContainer()
+	{
+		return new Container();
+	}
+
 	public static class Container
-		implements IVanillaLightWorldInterface
+		implements IVanillaLightInterface
 	{
 		private IVanillaLightInterface lightInterface;
 
@@ -104,8 +115,7 @@ public class VanillaEmptySectionLightPredictor
 
 		public static class Extended
 			extends Container
-			implements IVanillaLightInterface,
-			Positioned<IVanillaLightDescriptor, IVanillaLightInterface>,
+			implements Positioned<IVanillaLightDescriptor, IVanillaLightInterface>,
 			ILightIterator<IVanillaLightDescriptor>,
 			Supplier<Positioned<IVanillaLightDescriptor, IVanillaLightInterface>>
 		{

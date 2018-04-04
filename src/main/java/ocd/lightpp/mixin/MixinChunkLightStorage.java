@@ -37,7 +37,7 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
+import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ICleanable;
 import ocd.lightpp.api.vanilla.world.IVanillaChunkLightProvider;
@@ -158,7 +158,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	@Overwrite
 	public int getLightFor(final EnumSkyBlock type, final BlockPos pos)
 	{
-		return ((IVanillaLightWorldInterface) this.getWorldLightInterface(pos)).getLight(type);
+		return ((IVanillaLightInterface) this.getWorldLightInterface(pos)).getLight(type);
 	}
 
 	/**
@@ -169,7 +169,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	@Overwrite
 	public int getLightSubtracted(final BlockPos pos, final int amount)
 	{
-		final IVanillaLightWorldInterface lightInterface = ((IVanillaLightWorldInterface) this.getWorldLightInterface(pos));
+		final IVanillaLightInterface lightInterface = ((IVanillaLightInterface) this.getWorldLightInterface(pos));
 
 		return Math.max(lightInterface.getLight(EnumSkyBlock.BLOCK), lightInterface.getLight(EnumSkyBlock.SKY) - amount);
 	}
@@ -203,7 +203,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 				this.storageArrays[index - 1] = this.initBlockStorage(new ExtendedBlockStorage(y - 16, this.world.provider.hasSkyLight()), blockStorage);
 		}
 
-		final TypedLightStorage<?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
+		final TypedLightStorage<?, ?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
 		lightStorage.storage.setLight(type, new BlockPos(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15), value);
 
 		this.markDirty();

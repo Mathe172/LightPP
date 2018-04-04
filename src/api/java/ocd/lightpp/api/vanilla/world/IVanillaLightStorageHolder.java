@@ -30,7 +30,7 @@ import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 
 public interface IVanillaLightStorageHolder
 {
-	TypedLightStorage<?, ?, ?, ?, NibbleArray> getLightStorage();
+	TypedLightStorage<?, ?, ?, ?, ?, NibbleArray> getLightStorage();
 
-	void setLightStorage(TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorage);
+	void setLightStorage(TypedLightStorage<?, ?, ?, ?, ?, NibbleArray> lightStorage);
 }

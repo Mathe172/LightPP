@@ -40,15 +40,16 @@ import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 
-public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorldLightManager<D, LI, WI, CL, CS, CE>
+public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
+	extends VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 {
 	private final MutableBlockPos cachedIterPos = new MutableBlockPos();
 	private final MutableBlockPos cachedIterUpperPos = new MutableBlockPos();
 
 	public VanillaWorldLightHelper(
-		final TypedLightStorageProvider<D, LI, WI, CL, NibbleArray> lightStorageProvider,
-		@Nullable final TypedCachedLightProvider<D, LI, WI, CS> skyLightProvider,
-		@Nullable final TypedEmptySectionLightPredictor<D, LI, WI, CE> emptySectionLightPredictor,
+		final TypedLightStorageProvider<D, LI, WI, LLC, LWC, NibbleArray> lightStorageProvider,
+		@Nullable final TypedCachedLightProvider<D, LI, WI, SLC, SWC> skyLightProvider,
+		@Nullable final TypedEmptySectionLightPredictor<D, LI, WI, ELC, EWC> emptySectionLightPredictor,
 		final TypedLightProvider<D, LI, WI> emptyLightProvider
 	)
 	{
@@ -56,9 +57,9 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 	}
 
 	public void initLight(
-		final TypedLightStorage<?, ?, ?, ?, ?> lightStorage,
+		final TypedLightStorage<?, ?, ?, ?, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable TypedLightStorage<?, ?, ?, ?, ?> upperLightStorage,
+		final @Nullable TypedLightStorage<?, ?, ?, ?, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -71,9 +72,9 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 	}
 
 	public void initLight(
-		final ILightStorage<D, LI, ?, CL, ?> lightStorage,
+		final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, LI, ?, CL, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -120,9 +121,9 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 		}
 	}
 
-	public TypedLightStorage<D, LI, WI, CL, NibbleArray> createInitLightStorage(
+	public TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> createInitLightStorage(
 		final BlockPos basePos,
-		final @Nullable TypedLightStorage<?, ?, ?, ?, ?> upperLightStorage,
+		final @Nullable TypedLightStorage<?, ?, ?, ?, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -133,19 +134,19 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 		);
 	}
 
-	public TypedLightStorage<D, LI, WI, CL, NibbleArray> createInitLightStorage(
+	public TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> createInitLightStorage(
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, LI, ?, CL, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
-		final TypedLightStorage<D, LI, WI, CL, NibbleArray> lightStorage = this.createLightStorage();
+		final TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> lightStorage = this.createLightStorage();
 		this.initLight(lightStorage.storage, basePos, upperLightStorage, upperBasePos);
 
 		return lightStorage;
 	}
 
-	private void copyLightData(final ILightStorage<D, LI, ?, CL, ?> lightStorage, final Positioned<D, LI> lightInterface)
+	private void copyLightData(final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage, final Positioned<D, LI> lightInterface)
 	{
 		final Writeable<D, LI> writeAccess = this.getCachedPositioned(this.cachedIterPos, lightStorage);
 
@@ -166,9 +167,9 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 	}
 
 	public boolean isLightTrivial(
-		final TypedLightStorage<?, ?, ?, ?, ?> lightStorage,
+		final TypedLightStorage<?, ?, ?, ?, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable TypedLightStorage<?, ?, ?, ?, ?> upperLightStorage,
+		final @Nullable TypedLightStorage<?, ?, ?, ?, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -181,9 +182,9 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 	}
 
 	public boolean isLightTrivial(
-		final ILightStorage<D, LI, ?, CL, ?> lightStorage,
+		final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, LI, ?, CL, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -234,7 +235,7 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 		return true;
 	}
 
-	private boolean compareLightData(final ILightStorage<D, LI, ?, CL, ?> lightStorage, final Positioned<D, LI> refLightInterface)
+	private boolean compareLightData(final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage, final Positioned<D, LI> refLightInterface)
 	{
 		final Positioned<D, LI> lightInterface = this.getCachedPositioned(this.cachedIterPos, lightStorage);
 

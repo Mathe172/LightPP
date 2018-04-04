@@ -27,12 +27,12 @@ package ocd.lightpp.api.vanilla.type;
 
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
 
-public class TypedEmptySectionLightPredictor<LD, LI, WI, C>
+public class TypedEmptySectionLightPredictor<LD, LI, WI, LC, WC>
 {
-	public final CachedLightProviderType<LD, LI, WI, C> type;
-	public final IEmptySectionLightPredictor<LD, LI, WI, C> predictor;
+	public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
+	public final IEmptySectionLightPredictor<LD, LI, WI, LC, WC> predictor;
 
-	public TypedEmptySectionLightPredictor(final CachedLightProviderType<LD, LI, WI, C> type, final IEmptySectionLightPredictor<LD, LI, WI, C> predictor)
+	public TypedEmptySectionLightPredictor(final CachedLightProviderType<LD, LI, WI, LC, WC> type, final IEmptySectionLightPredictor<LD, LI, WI, LC, WC> predictor)
 	{
 		this.type = type;
 		this.predictor = predictor;

@@ -52,10 +52,10 @@ public abstract class MixinSectionLightStorage implements IVanillaLightStorageHo
 	@Shadow
 	private int blockRefCount;
 
-	private @Nullable TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorageHolder;
+	private @Nullable TypedLightStorage<?, ?, ?, ?, ?, NibbleArray> lightStorageHolder;
 
 	@Override
-	public TypedLightStorage<?, ?, ?, ?, NibbleArray> getLightStorage()
+	public TypedLightStorage<?, ?, ?, ?, ?, NibbleArray> getLightStorage()
 	{
 		if (this.lightStorageHolder == null)
 			throw new IllegalStateException("Light storage has not been initialized");
@@ -64,7 +64,7 @@ public abstract class MixinSectionLightStorage implements IVanillaLightStorageHo
 	}
 
 	@Override
-	public void setLightStorage(final TypedLightStorage<?, ?, ?, ?, NibbleArray> lightStorageHolder)
+	public void setLightStorage(final TypedLightStorage<?, ?, ?, ?, ?, NibbleArray> lightStorageHolder)
 	{
 		this.lightStorageHolder = lightStorageHolder;
 	}
@@ -72,7 +72,7 @@ public abstract class MixinSectionLightStorage implements IVanillaLightStorageHo
 	@Override
 	public void serialize(final NBTTagCompound data)
 	{
-		final ILightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.getLightStorage().storage;
+		final ILightStorage<?, ?, ?, ?, ?, NibbleArray> lightStorage = this.getLightStorage().storage;
 
 		final NBTBase skyLight = lightStorage.serialize(EnumSkyBlock.SKY);
 		final NBTBase blockLight = lightStorage.serialize(EnumSkyBlock.BLOCK);
@@ -91,7 +91,7 @@ public abstract class MixinSectionLightStorage implements IVanillaLightStorageHo
 	@Override
 	public void deserialize(final NBTTagCompound data)
 	{
-		final ILightStorage<?, ?, ?, ?, NibbleArray> lightStorage = this.getLightStorage().storage;
+		final ILightStorage<?, ?, ?, ?, ?, NibbleArray> lightStorage = this.getLightStorage().storage;
 
 		lightStorage.deserialize(EnumSkyBlock.BLOCK, data.getTag(NameRef.BLOCKLIGHT_NAME));
 		lightStorage.deserialize(EnumSkyBlock.SKY, data.getTag(NameRef.SKYLIGHT_NAME));

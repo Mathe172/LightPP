@@ -31,24 +31,22 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
-import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.ILightProvider;
 import ocd.lightpp.lighting.vanilla.light.VanillaSkyLightProvider.Container;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 
 public class VanillaSkyLightProvider
-	implements ILightProvider.Cached<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Container>,
-	IVanillaLightInterface,
-	IVanillaLightWorldInterface
+	implements ILightProvider.Cached<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface, Container, Void>,
+	IVanillaLightInterface
 {
 	@Override
 	public Positioned<IVanillaLightDescriptor, IVanillaLightInterface> bind(final BlockPos pos)
 	{
-		return new Container();
+		return this.createLightContainer();
 	}
 
 	@Override
-	public IVanillaLightWorldInterface getStorageInterface(final BlockPos pos)
+	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos)
 	{
 		return this;
 	}
@@ -60,9 +58,21 @@ public class VanillaSkyLightProvider
 	}
 
 	@Override
-	public Container createContainer()
+	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos, final Void container)
+	{
+		return this;
+	}
+
+	@Override
+	public Container createLightContainer()
 	{
 		return new Container();
+	}
+
+	@Override
+	public Void createWorldLightContainer()
+	{
+		return null;
 	}
 
 	@Override

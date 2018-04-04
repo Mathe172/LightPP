@@ -35,6 +35,8 @@ public class VanillaLightMap implements ILightMap<IVanillaLightDescriptor, IVani
 {
 	final int[] values = new int[IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length];
 
+	private final Iterator it = new Iterator();
+
 	@Override
 	public void clear()
 	{
@@ -56,37 +58,7 @@ public class VanillaLightMap implements ILightMap<IVanillaLightDescriptor, IVani
 	@Override
 	public ILightIterator<IVanillaLightDescriptor> iterator()
 	{
-		return new ILightIterator<IVanillaLightDescriptor>()
-		{
-			private final VanillaLightDescriptor desc = new VanillaLightDescriptor();
-			private int curIndex = -1;
-
-			@Override
-			public int getLight()
-			{
-				return VanillaLightMap.this.values[this.curIndex];
-			}
-
-			@Override
-			public IVanillaLightDescriptor getDescriptor()
-			{
-				return this.desc;
-			}
-
-			@Override
-			public boolean next()
-			{
-				for (; ++this.curIndex < IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length; )
-					if (this.getLight() != 0)
-					{
-						this.desc.setSkyBlock(IVanillaLightDescriptor.SKY_BLOCKS_VALUES[this.curIndex]);
-
-						return true;
-					}
-
-				return false;
-			}
-		};
+		return this.it.init();
 	}
 
 	@Override
@@ -106,5 +78,44 @@ public class VanillaLightMap implements ILightMap<IVanillaLightDescriptor, IVani
 	{
 		final int index = lightType.ordinal();
 		this.values[index] = Math.max(this.values[index], light);
+	}
+
+	public class Iterator implements ILightIterator<IVanillaLightDescriptor>
+	{
+		private final VanillaLightDescriptor desc = new VanillaLightDescriptor();
+		private int curIndex;
+
+		Iterator init()
+		{
+			this.curIndex = -1;
+
+			return this;
+		}
+
+		@Override
+		public int getLight()
+		{
+			return VanillaLightMap.this.values[this.curIndex];
+		}
+
+		@Override
+		public IVanillaLightDescriptor getDescriptor()
+		{
+			return this.desc;
+		}
+
+		@Override
+		public boolean next()
+		{
+			for (; ++this.curIndex < IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length; )
+				if (this.getLight() != 0)
+				{
+					this.desc.setSkyBlock(IVanillaLightDescriptor.SKY_BLOCKS_VALUES[this.curIndex]);
+
+					return true;
+				}
+
+			return false;
+		}
 	}
 }

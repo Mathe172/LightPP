@@ -27,18 +27,18 @@ package ocd.lightpp.api.vanilla.type;
 
 import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 
-public class TypedLightStorageProvider<LD, LI, WI, C, T>
+public class TypedLightStorageProvider<LD, LI, WI, LC, WC, T>
 {
-	public final CachedLightProviderType<LD, LI, WI, C> type;
-	public final ILightStorageProvider<LD, LI, WI, C, T> provider;
+	public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
+	public final ILightStorageProvider<LD, LI, WI, LC, WC, T> provider;
 
-	public TypedLightStorageProvider(final CachedLightProviderType<LD, LI, WI, C> type, final ILightStorageProvider<LD, LI, WI, C, T> provider)
+	public TypedLightStorageProvider(final CachedLightProviderType<LD, LI, WI, LC, WC> type, final ILightStorageProvider<LD, LI, WI, LC, WC, T> provider)
 	{
 		this.type = type;
 		this.provider = provider;
 	}
 
-	public TypedLightStorage<LD, LI, WI, C, T> createLightStorage()
+	public TypedLightStorage<LD, LI, WI, LC, WC, T> createLightStorage()
 	{
 		return new TypedLightStorage<>(this.type, this.provider.createLightStorage());
 	}

@@ -25,9 +25,11 @@
 
 package ocd.lightpp.api.vanilla.world;
 
-public interface ILightStorageProvider<LD, LI, WI, C, T>
+public interface ILightStorageProvider<LD, LI, WI, LC, WC, T>
 {
-	ILightStorage<LD, LI, WI, C, T> createLightStorage();
+	ILightStorage<LD, LI, WI, LC, WC, T> createLightStorage();
 
-	C createContainer();
+	LC createLightContainer();
+
+	WC createWorldLightContainer();
 }

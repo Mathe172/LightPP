@@ -31,13 +31,17 @@ public interface ILightProvider<LD, LI, WI>
 {
 	Positioned<LD, LI> bind(BlockPos pos);
 
-	WI getStorageInterface(BlockPos pos);
+	WI getWorldLightInterface(BlockPos pos);
 
-	interface Cached<D, LI, WI, C> extends ILightProvider<D, LI, WI>
+	interface Cached<D, LI, WI, LC, WC> extends ILightProvider<D, LI, WI>
 	{
-		Positioned<D, LI> bind(BlockPos pos, C container);
+		Positioned<D, LI> bind(BlockPos pos, LC container);
 
-		C createContainer();
+		WI getWorldLightInterface(BlockPos pos, WC container);
+
+		LC createLightContainer();
+
+		WC createWorldLightContainer();
 	}
 
 	interface Positioned<LD, LI>

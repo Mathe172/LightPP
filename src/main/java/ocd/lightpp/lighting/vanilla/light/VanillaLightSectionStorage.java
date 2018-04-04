@@ -33,7 +33,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
-import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.api.vanilla.world.ILightStorageHandler;
@@ -42,7 +41,7 @@ import ocd.lightpp.lighting.vanilla.light.VanillaLightSectionStorage.Container;
 import ocd.lightpp.lighting.vanilla.light.VanillaLightSectionStorage.Container.Extended;
 
 public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>>
-	implements ILightStorage<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Container.Extended<T, HC>, T>
+	implements ILightStorage<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface, Container.Extended<T, HC>, Container<T, HC>, T>
 {
 	final ILightStorageHandler<T, HC> handler;
 	private final boolean hasSkyLight;
@@ -63,9 +62,21 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	}
 
 	@Override
-	public Container.Extended<T, HC> createContainer()
+	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos, final Container<T, HC> container)
+	{
+		return container.bind(this, pos);
+	}
+
+	@Override
+	public Container.Extended<T, HC> createLightContainer()
 	{
 		return new Container.Extended<>(this.handler.newContainer());
+	}
+
+	@Override
+	public Container<T, HC> createWorldLightContainer()
+	{
+		return new Container<>(this.handler.newContainer());
 	}
 
 	@Override
@@ -90,15 +101,15 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	}
 
 	@Override
-	public IVanillaLightWorldInterface getStorageInterface(final BlockPos pos)
+	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos)
 	{
-		return new Container<>(this.handler.newContainer()).bind(this, pos);
+		return this.getWorldLightInterface(pos, this.createWorldLightContainer());
 	}
 
 	@Override
 	public Positioned<IVanillaLightDescriptor, IVanillaLightInterface> bind(final BlockPos pos)
 	{
-		return this.createContainer().bind(this, pos);
+		return this.bind(pos, this.createLightContainer());
 	}
 
 	@Override
@@ -222,7 +233,7 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	}
 
 	public static class Container<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>>
-		implements IVanillaLightWorldInterface
+		implements IVanillaLightInterface
 	{
 		final HC handlerContainer;
 		VanillaLightSectionStorage<T, HC> sectionStorage;
@@ -249,8 +260,7 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 
 		public static class Extended<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>>
 			extends Container<T, HC>
-			implements IVanillaLightInterface,
-			ILightIterator<IVanillaLightDescriptor>,
+			implements ILightIterator<IVanillaLightDescriptor>,
 			Writeable<IVanillaLightDescriptor, IVanillaLightInterface>,
 			Supplier<Writeable<IVanillaLightDescriptor, IVanillaLightInterface>>
 		{
@@ -344,8 +354,9 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	public static class Provider<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>> implements ILightStorageProvider<
 		IVanillaLightDescriptor,
 		IVanillaLightInterface,
-		IVanillaLightWorldInterface,
+		IVanillaLightInterface,
 		Container.Extended<T, HC>,
+		Container<T, HC>,
 		T
 		>
 	{
@@ -359,15 +370,21 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 		}
 
 		@Override
-		public ILightStorage<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Extended<T, HC>, T> createLightStorage()
+		public ILightStorage<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface, Extended<T, HC>, Container<T, HC>, T> createLightStorage()
 		{
 			return new VanillaLightSectionStorage<>(this.handler, this.hasSkyLight);
 		}
 
 		@Override
-		public Container.Extended<T, HC> createContainer()
+		public Container.Extended<T, HC> createLightContainer()
 		{
 			return new Container.Extended<>(this.handler.newContainer());
+		}
+
+		@Override
+		public Container<T, HC> createWorldLightContainer()
+		{
+			return new Container<>(this.handler.newContainer());
 		}
 	}
 }

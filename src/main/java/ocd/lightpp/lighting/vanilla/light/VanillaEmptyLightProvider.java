@@ -31,16 +31,14 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
-import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.ILightProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 
 public class VanillaEmptyLightProvider
-	implements ILightProvider<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface>,
+	implements ILightProvider<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface>,
 	IVanillaLightInterface,
 	Positioned<IVanillaLightDescriptor, IVanillaLightInterface>,
 	Supplier<Positioned<IVanillaLightDescriptor, IVanillaLightInterface>>,
-	IVanillaLightWorldInterface,
 	ILightIterator<IVanillaLightDescriptor>
 {
 	@Override
@@ -56,7 +54,7 @@ public class VanillaEmptyLightProvider
 	}
 
 	@Override
-	public IVanillaLightWorldInterface getStorageInterface(final BlockPos pos)
+	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos)
 	{
 		return this;
 	}

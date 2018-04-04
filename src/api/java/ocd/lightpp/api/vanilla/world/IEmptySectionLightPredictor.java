@@ -27,13 +27,17 @@ package ocd.lightpp.api.vanilla.world;
 import net.minecraft.util.math.BlockPos;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 
-public interface IEmptySectionLightPredictor<LD, LI, WI, C>
+public interface IEmptySectionLightPredictor<LD, LI, WI, LC, WC>
 {
 	Positioned<LD, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface);
 
-	Positioned<LD, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface, C container);
+	Positioned<LD, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface, LC container);
 
-	WI getStorageInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
+	WI getWorldLightInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
 
-	C createContainer();
+	WI getWorldLightInterface(BlockPos pos, BlockPos upperPos, LI lightInterface, WC container);
+
+	LC createLightContainer();
+
+	WC createWorldLightContainer();
 }

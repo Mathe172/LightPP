@@ -244,9 +244,9 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 
 	public <WI> VanillaLightHandler(
 		final World world,
-		final TypedLightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
-		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?> skyLightProvider,
-		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?> emptySectionLightPredictor,
+		final TypedLightStorageProvider<LD, LI, WI, C, ?, NibbleArray> lightStorageProvider,
+		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?, ?> skyLightProvider,
+		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?, ?> emptySectionLightPredictor,
 		final TypedLightProvider<LD, LI, WI> emptyLightProvider,
 		final ILightQueueDataset.Provider<LD> lightDataSetProvider,
 		final ILightCollectionQueueDataset.Provider<LD, LCD> lightCollectionDataSetProvider
@@ -496,7 +496,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 
 		if (blockStorage != Chunk.NULL_BLOCK_STORAGE)
 		{
-			final TypedLightStorage<?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
+			final TypedLightStorage<?, ?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
 			section.lightStorage = this.lightManager.checkCachedProviderType(lightStorage);
 		}
 
@@ -514,7 +514,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 
 			if (blockStorage != Chunk.NULL_BLOCK_STORAGE)
 			{
-				final TypedLightStorage<?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
+				final TypedLightStorage<?, ?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
 				section.upperLightStorage = this.lightManager.checkCachedProviderType(lightStorage);
 				section.upperPos.setPos(section.pos.getX(), y << 4, section.pos.getZ());
 

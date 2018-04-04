@@ -64,14 +64,14 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 
 	short data;
 
-	final VanillaWorldLightHelper<LD, LI, ?, C, ?, ?> lightManager;
+	final VanillaWorldLightHelper<LD, LI, ?, C, ?, ?, ?, ?, ?> lightManager;
 
 	private final MutableBlockPos cachedPos = new MutableBlockPos();
 
 	<WI> VanillaLightAccess(
-		final TypedLightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
-		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?> skyLightProvider,
-		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?> emptySectionLightPredictor,
+		final TypedLightStorageProvider<LD, LI, WI, C, ?, NibbleArray> lightStorageProvider,
+		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?, ?> skyLightProvider,
+		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?, ?> emptySectionLightPredictor,
 		final TypedLightProvider<LD, LI, WI> emptyLightProvider
 	)
 	{
@@ -150,12 +150,12 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		@Nullable SectionContainer<LD, LI, C> section,
 		long sectionCoords,
 		final BlockPos pos,
-		final @Nullable ILightStorage<LD, LI, ?, C, ?> upperLightStorage,
+		final @Nullable ILightStorage<LD, LI, ?, C, ?, ?> upperLightStorage,
 		final BlockPos upperPos
 	)
 	{
 		ExtendedBlockStorage blockStorage = new ExtendedBlockStorage(yIndex << 4, this.lightHandler.world.provider.hasSkyLight());
-		final TypedLightStorage<LD, LI, ?, C, NibbleArray> lightStorage = this.lightManager.createInitLightStorage(
+		final TypedLightStorage<LD, LI, ?, C, ?, NibbleArray> lightStorage = this.lightManager.createInitLightStorage(
 			pos,
 			upperLightStorage,
 			upperPos
@@ -302,10 +302,10 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		int yIndex;
 
 		ExtendedBlockStorage blockStorage;
-		@Nullable ILightStorage<LD, LI, ?, C, ?> lightStorage;
+		@Nullable ILightStorage<LD, LI, ?, C, ?, ?> lightStorage;
 
 		final MutableBlockPos upperPos = new MutableBlockPos();
-		@Nullable ILightStorage<LD, LI, ?, C, ?> upperLightStorage;
+		@Nullable ILightStorage<LD, LI, ?, C, ?, ?> upperLightStorage;
 
 		boolean initLowerStorage;
 

@@ -33,6 +33,9 @@ public interface ILightMap<LD, I>
 
 	void set(LD desc, int val);
 
+	/**
+	 * May be reused.
+	 */
 	ILightIterator<LD> iterator();
 
 	I getInterface();
