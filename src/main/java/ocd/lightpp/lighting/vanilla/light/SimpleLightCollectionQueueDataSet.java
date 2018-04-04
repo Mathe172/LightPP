@@ -82,18 +82,21 @@ public class SimpleLightCollectionQueueDataSet<LD extends ITypedEqual<LD>, Q ext
 	@Override
 	public boolean next()
 	{
-		if (this.curIndex == 0)
+		if (this.queue != null)
 		{
-			if (!this.queue.isEmpty())
-				return true;
+			if (this.curIndex == 0)
+			{
+				if (!this.queue.isEmpty())
+					return true;
 
-			this.queue = null;
-		}
-		else if (this.queue != null)
-		{
-			this.curIndex = 0;
-			this.desc.setDescriptor(null);
-			return true;
+				this.queue = null;
+			}
+			else
+			{
+				this.curIndex = 0;
+				this.desc.setDescriptor(null);
+				return true;
+			}
 		}
 
 		if (!this.lightDataSet.next())

@@ -27,6 +27,7 @@ package ocd.lightpp.lighting.vanilla.light;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
@@ -55,9 +56,9 @@ public class VanillaLightPropagator
 {
 	private final int worldMaxLight;
 
-	private IVanillaWorldInterface world;
 	private IBlockAccess blockAccess;
 	private BlockPos pos;
+	private IBlockState blockState;
 	private int opacity;
 
 	private final ILightMap<IVanillaLightDescriptor, IVanillaLightMap> vLightMap;
@@ -78,20 +79,19 @@ public class VanillaLightPropagator
 	{
 		lightMap.add(
 			lightType,
-			sourceLight - (
-				lightType == EnumSkyBlock.SKY && dir == EnumFacing.DOWN && sourceLight == EnumSkyBlock.SKY.defaultLightValue
-					? 0
-					: Math.max(this.opacity, 1)
-			)
+			((lightType == EnumSkyBlock.SKY) && (dir == EnumFacing.DOWN) && (sourceLight == EnumSkyBlock.SKY.defaultLightValue) && (this.opacity == 0))
+				? sourceLight
+				: (sourceLight - Math.max(this.opacity, 1))
 		);
 	}
 
 	private void prepareCalc(final ILightAccess<? extends IVanillaLightInterface, ? extends IVanillaWorldInterface> lightAccess)
 	{
-		this.world = lightAccess.getWorldInterface();
-		this.blockAccess = this.world.getWorld();
-		this.pos = this.world.getPos();
-		this.opacity = this.world.getBlockState().getLightOpacity(this.blockAccess, this.pos);
+		final IVanillaWorldInterface world = lightAccess.getWorldInterface();
+		this.blockAccess = world.getWorld();
+		this.pos = world.getPos();
+		this.blockState = world.getBlockState();
+		this.opacity = this.blockState.getLightOpacity(this.blockAccess, this.pos);
 	}
 
 	@Override
@@ -139,7 +139,7 @@ public class VanillaLightPropagator
 		}
 
 		if (lightType != EnumSkyBlock.SKY)
-			lightMap.add(EnumSkyBlock.BLOCK, this.world.getBlockState().getLightValue(this.blockAccess, this.pos));
+			lightMap.add(EnumSkyBlock.BLOCK, this.blockState.getLightValue(this.blockAccess, this.pos));
 	}
 
 	@Override
@@ -212,5 +212,12 @@ public class VanillaLightPropagator
 		this.prepareCalc(neighborLightAccess);
 
 		this.calcSpread(desc.getSkyBlock(), dir, light, lightMap);
+	}
+
+	@Override
+	public void cleanup()
+	{
+		this.blockAccess = null;
+		this.blockState = null;
 	}
 }

@@ -23,11 +23,23 @@
  *
  */
 
-package ocd.lightpp.impl;
+package ocd.lightpp.api.vanilla.type;
 
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 
-public interface IWorldLightStorageInitializer
+public class TypedLightStorageProvider<LD, LI, WI, C, T>
 {
-	void initEmptyLightStorage(ExtendedBlockStorage blockStorage);
+	public final CachedLightProviderType<LD, LI, WI, C> type;
+	public final ILightStorageProvider<LD, LI, WI, C, T> provider;
+
+	public TypedLightStorageProvider(final CachedLightProviderType<LD, LI, WI, C> type, final ILightStorageProvider<LD, LI, WI, C, T> provider)
+	{
+		this.type = type;
+		this.provider = provider;
+	}
+
+	public TypedLightStorage<LD, LI, WI, C, T> createLightStorage()
+	{
+		return new TypedLightStorage<>(this.type, this.provider.createLightStorage());
+	}
 }

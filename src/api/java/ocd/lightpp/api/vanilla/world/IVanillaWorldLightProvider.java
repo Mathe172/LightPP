@@ -34,10 +34,11 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
+import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 
 public interface IVanillaWorldLightProvider
 {
-	ILightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider();
+	TypedLightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider();
 
 	@Nullable TypedCachedLightProvider<?, ?, ?, ?> getSkyLightProvider();
 

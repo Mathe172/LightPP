@@ -25,14 +25,9 @@
 
 package ocd.lightpp.api.vanilla.world;
 
-import ocd.lightpp.api.vanilla.type.CachedLightProviderType;
-import ocd.lightpp.api.vanilla.type.TypedLightStorage;
-
 public interface ILightStorageProvider<LD, LI, WI, C, T>
 {
-	CachedLightProviderType<LD, LI, WI, C> getType();
-
-	TypedLightStorage<LD, LI, WI, C, T> createLightStorage();
+	ILightStorage<LD, LI, WI, C, T> createLightStorage();
 
 	C createContainer();
 }

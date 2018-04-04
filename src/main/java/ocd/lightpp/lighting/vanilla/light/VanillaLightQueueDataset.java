@@ -37,7 +37,7 @@ public class VanillaLightQueueDataset<Q extends IEmpty> implements ILightQueueDa
 	private int curIndex;
 
 	@SuppressWarnings("unchecked") // Thanks, Java...
-	private final Q[] queues = (Q[]) new Object[IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length];
+	private final Q[] queues = (Q[]) new IEmpty[IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length]; // FUUUUUUUU JAVA !!!!!!!!
 
 	public VanillaLightQueueDataset(final Supplier<Q> provider)
 	{
@@ -69,7 +69,9 @@ public class VanillaLightQueueDataset<Q extends IEmpty> implements ILightQueueDa
 	@Override
 	public boolean next()
 	{
-		if (!this.queues[this.curIndex].isEmpty())
+		final Q queue = this.queues[this.curIndex];
+
+		if (queue != null && !queue.isEmpty())
 			return true;
 
 		this.queues[this.curIndex] = null;

@@ -39,7 +39,7 @@ import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProv
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
-import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
+import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldLightProvider;
 import ocd.lightpp.lighting.vanilla.world.VanillaWorldLightHelper;
@@ -53,7 +53,7 @@ public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvid
 	private final MutableBlockPos cachedUpperPos = new MutableBlockPos();
 
 	@Override
-	public ILightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider()
+	public TypedLightStorageProvider<?, ?, ?, ?, NibbleArray> getLightStorageProvider()
 	{
 		return this.lightManager.lightStorageProvider;
 	}

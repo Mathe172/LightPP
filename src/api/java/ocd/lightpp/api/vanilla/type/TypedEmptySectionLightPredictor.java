@@ -27,7 +27,7 @@ package ocd.lightpp.api.vanilla.type;
 
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
 
-public abstract class TypedEmptySectionLightPredictor<LD, LI, WI, C>
+public class TypedEmptySectionLightPredictor<LD, LI, WI, C>
 {
 	public final CachedLightProviderType<LD, LI, WI, C> type;
 	public final IEmptySectionLightPredictor<LD, LI, WI, C> predictor;
@@ -37,6 +37,4 @@ public abstract class TypedEmptySectionLightPredictor<LD, LI, WI, C>
 		this.type = type;
 		this.predictor = predictor;
 	}
-
-	public abstract C createContainer();
 }

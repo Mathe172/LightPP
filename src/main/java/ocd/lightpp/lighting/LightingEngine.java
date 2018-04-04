@@ -104,7 +104,7 @@ public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, 
 		this.initialDarkenings = this.lightHandler.createUpdateQueue();
 		this.initialBrightenings = this.createUpdateQueues();
 
-		this.isNeighborProcessed[7] = true; // needed to treat reflections more uniformly
+		this.isNeighborProcessed[6] = true; // needed to treat reflections more uniformly
 
 		this.procLightMap = lightMapProvider.get();
 
@@ -442,7 +442,7 @@ public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, 
 						this.prepareNeighborDarkening(desc, dir, procLight, i, lightAccess, neighborLightAccess);
 					}
 
-					this.prepareNeighborDarkening(desc, null, procLight, 7, lightAccess, lightAccess);
+					this.prepareNeighborDarkening(desc, null, procLight, 6, lightAccess, lightAccess);
 				}
 
 				if (allNeighborsLoaded)
@@ -506,7 +506,7 @@ public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, 
 							final int oldLight = this.oldNeighborLight[i].get(lDesc);
 
 							if (spread > oldLight)
-								this.enqueueBrightening(lit.getDescriptor(), dir, spread, neighborLightAccess);
+								this.enqueueBrightening(lDesc, dir, spread, neighborLightAccess);
 							else
 							{
 								neighborLightAccess.setLight(lDesc, oldLight);

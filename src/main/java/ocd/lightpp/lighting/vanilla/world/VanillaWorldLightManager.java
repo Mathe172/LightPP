@@ -34,14 +34,14 @@ import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProv
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
-import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 
 public class VanillaWorldLightManager<D, LI, WI, CL, CS, CE>
 {
-	public final ILightStorageProvider<D, LI, WI, CL, NibbleArray> lightStorageProvider;
+	public final TypedLightStorageProvider<D, LI, WI, CL, NibbleArray> lightStorageProvider;
 	public final @Nullable TypedCachedLightProvider<D, LI, WI, CS> skyLightProvider;
 	public final @Nullable TypedEmptySectionLightPredictor<D, LI, WI, CE> emptySectionLightPredictor;
 	public final TypedLightProvider<D, LI, WI> emptyLightProvider;
@@ -57,7 +57,7 @@ public class VanillaWorldLightManager<D, LI, WI, CL, CS, CE>
 	private final MutableBlockPos cachedUpperPos = new MutableBlockPos();
 
 	public VanillaWorldLightManager(
-		final ILightStorageProvider<D, LI, WI, CL, NibbleArray> lightStorageProvider,
+		final TypedLightStorageProvider<D, LI, WI, CL, NibbleArray> lightStorageProvider,
 		@Nullable final TypedCachedLightProvider<D, LI, WI, CS> skyLightProvider,
 		@Nullable final TypedEmptySectionLightPredictor<D, LI, WI, CE> emptySectionLightPredictor,
 		final TypedLightProvider<D, LI, WI> emptyLightProvider
@@ -70,10 +70,10 @@ public class VanillaWorldLightManager<D, LI, WI, CL, CS, CE>
 
 		this.needsUpperStorage = skyLightProvider != null || emptySectionLightPredictor != null;
 
-		this.lightStorageContainer = lightStorageProvider.createContainer();
-		this.upperLightStorageContainer = lightStorageProvider.createContainer();
-		this.skyLightContainer = skyLightProvider == null ? null : skyLightProvider.createContainer();
-		this.emptySectionPredictorContainer = emptySectionLightPredictor == null ? null : emptySectionLightPredictor.createContainer();
+		this.lightStorageContainer = lightStorageProvider.provider.createContainer();
+		this.upperLightStorageContainer = lightStorageProvider.provider.createContainer();
+		this.skyLightContainer = skyLightProvider == null ? null : skyLightProvider.provider.createContainer();
+		this.emptySectionPredictorContainer = emptySectionLightPredictor == null ? null : emptySectionLightPredictor.predictor.createContainer();
 	}
 
 	public boolean needsUpperStorage()
@@ -84,19 +84,19 @@ public class VanillaWorldLightManager<D, LI, WI, CL, CS, CE>
 	@SuppressWarnings("unchecked")
 	public ILightStorage<D, LI, WI, ?, ?> checkProviderType(final TypedLightStorage<?, ?, ?, ?, ?> lightStorage)
 	{
-		if (this.lightStorageProvider.getType().lightProviderType != lightStorage.type.lightProviderType)
+		if (this.lightStorageProvider.type.lightProviderType != lightStorage.type.lightProviderType)
 			throw new IllegalStateException("Incompatible light types");
 
-		return (ILightStorage<D, LI, WI, ?, ?>) lightStorage;
+		return (ILightStorage<D, LI, WI, ?, ?>) lightStorage.storage;
 	}
 
 	@SuppressWarnings("unchecked")
 	public ILightStorage<D, LI, WI, CL, ?> checkCachedProviderType(final TypedLightStorage<?, ?, ?, ?, ?> lightStorage)
 	{
-		if (this.lightStorageProvider.getType() != lightStorage.type)
+		if (this.lightStorageProvider.type != lightStorage.type)
 			throw new IllegalStateException("Incompatible light types");
 
-		return (ILightStorage<D, LI, WI, CL, ?>) lightStorage;
+		return (ILightStorage<D, LI, WI, CL, ?>) lightStorage.storage;
 	}
 
 	public TypedLightStorage<D, LI, WI, CL, NibbleArray> createLightStorage()

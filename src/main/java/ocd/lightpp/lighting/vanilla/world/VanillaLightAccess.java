@@ -43,9 +43,9 @@ import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProv
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
-import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
 
@@ -69,7 +69,7 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 	private final MutableBlockPos cachedPos = new MutableBlockPos();
 
 	<WI> VanillaLightAccess(
-		final ILightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
+		final TypedLightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
 		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?> skyLightProvider,
 		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?> emptySectionLightPredictor,
 		final TypedLightProvider<LD, LI, WI> emptyLightProvider
@@ -279,7 +279,7 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		if (this.section.blockStorage == Chunk.NULL_BLOCK_STORAGE)
 			return Blocks.AIR.getDefaultState();
 
-		return this.section.blockStorage.get(this.pos.getX(), this.pos.getY(), this.pos.getZ());
+		return this.section.blockStorage.get(this.pos.getX() & 15, this.pos.getY() & 15, this.pos.getZ() & 15);
 	}
 
 	@Override

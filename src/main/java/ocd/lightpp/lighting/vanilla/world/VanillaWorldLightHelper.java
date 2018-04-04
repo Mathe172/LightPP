@@ -35,10 +35,10 @@ import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProv
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
-import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 
 public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorldLightManager<D, LI, WI, CL, CS, CE>
 {
@@ -46,7 +46,7 @@ public class VanillaWorldLightHelper<D, LI, WI, CL, CS, CE> extends VanillaWorld
 	private final MutableBlockPos cachedIterUpperPos = new MutableBlockPos();
 
 	public VanillaWorldLightHelper(
-		final ILightStorageProvider<D, LI, WI, CL, NibbleArray> lightStorageProvider,
+		final TypedLightStorageProvider<D, LI, WI, CL, NibbleArray> lightStorageProvider,
 		@Nullable final TypedCachedLightProvider<D, LI, WI, CS> skyLightProvider,
 		@Nullable final TypedEmptySectionLightPredictor<D, LI, WI, CE> emptySectionLightPredictor,
 		final TypedLightProvider<D, LI, WI> emptyLightProvider

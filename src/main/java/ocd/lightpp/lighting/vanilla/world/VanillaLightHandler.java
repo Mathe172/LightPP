@@ -49,9 +49,9 @@ import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProv
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
+import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 import ocd.lightpp.api.vanilla.world.ILightQueueDataset;
 import ocd.lightpp.api.vanilla.world.ILightQueueDataset.ILightCollectionQueueDataset;
-import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
 import ocd.lightpp.util.PooledIntQueue;
@@ -162,7 +162,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 			lNeighborShifts[i] = (short) ((offset.getX() << slX) | (offset.getY() << slY) | (offset.getZ() << slZ));
 			lOverflowCorrections[i] = (short) ((-offset.getX() << (slX + llX)) | (-offset.getY() << (slY + llY)) | (-offset.getZ() << (slZ + llZ)));
 
-			final short checkMask = ((-1 & mlX) << slX) | ((-1 & mlY) << slY) | ((-1 & mlZ) << slZ);
+			final short checkMask = (short) (((-Math.abs(offset.getX()) & mlX) << slX) | ((-Math.abs(offset.getY()) & mlY) << slY) | ((-Math.abs(offset.getZ()) & mlZ) << slZ));
 			lCheckMasks[i] = checkMask;
 
 			final boolean isPositive = offset.getX() + offset.getY() + offset.getZ() > 0;
@@ -175,12 +175,16 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 
 	private static void addLocalCoords(final MutableBlockPos pos, final short localCoords)
 	{
-		pos.add(localCoords >> slX & mlX, localCoords >> slY & mlY, localCoords >> slZ & mlZ);
+		pos.setPos(
+			pos.getX() + (localCoords >> slX & mlX),
+			pos.getY() + (localCoords >> slY & mlY),
+			pos.getZ() + (localCoords >> slZ & mlZ)
+		);
 	}
 
 	static short posToLocalCoords(final BlockPos pos)
 	{
-		return (short) (((pos.getX() & 255) << slX) | ((pos.getY() & 255) << slY) | ((pos.getZ() & 255) << slZ));
+		return (short) (((pos.getX() & 15) << slX) | ((pos.getY() & 15) << slY) | ((pos.getZ() & 15) << slZ));
 	}
 
 	static @Nullable EnumFacing getDirection(final short data)
@@ -191,7 +195,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 
 	static short dirToData(@Nullable final EnumFacing dir)
 	{
-		final int index = dir == null ? 7 : dir.ordinal();
+		final int index = dir == null ? 6 : dir.ordinal();
 		return (short) (index << sDir);
 	}
 
@@ -240,7 +244,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 
 	public <WI> VanillaLightHandler(
 		final World world,
-		final ILightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
+		final TypedLightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
 		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?> skyLightProvider,
 		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?> emptySectionLightPredictor,
 		final TypedLightProvider<LD, LI, WI> emptyLightProvider,
@@ -511,8 +515,8 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 			if (blockStorage != Chunk.NULL_BLOCK_STORAGE)
 			{
 				final TypedLightStorage<?, ?, ?, ?, ?> lightStorage = ((IVanillaLightStorageHolder) blockStorage).getLightStorage();
-				this.section.upperLightStorage = this.lightManager.checkCachedProviderType(lightStorage);
-				this.section.upperPos.setPos(this.section.pos.getX(), y << 4, this.section.pos.getZ());
+				section.upperLightStorage = this.lightManager.checkCachedProviderType(lightStorage);
+				section.upperPos.setPos(section.pos.getX(), y << 4, section.pos.getZ());
 
 				return;
 			}
@@ -646,7 +650,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 		{
 			final int sectionIndex = section.index;
 
-			if (sectionIndex > this.updates.size())
+			if (sectionIndex >= this.updates.size())
 			{
 				this.updates.ensureCapacity(sectionIndex + 1);
 

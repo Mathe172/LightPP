@@ -91,7 +91,7 @@ public class TransformerSPacketChunkDataLightStorage extends MethodTransformer.N
 				new InvokeInjector(CALC_SIZE)
 			),
 			new LineInjector(
-				new MethodMatcher(NameRef.SET_SKY_LIGHT_MATCHER),
+				new MethodMatcher(NameRef.GET_SKY_LIGHT_MATCHER),
 				LineInjector.REMOVE
 			)
 		);
@@ -100,12 +100,13 @@ public class TransformerSPacketChunkDataLightStorage extends MethodTransformer.N
 			EXTRACT_DATA_MATCHER,
 			new LineInjector(
 				new MethodMatcher(NameRef.GET_BLOCK_LIGHT_MATCHER),
+				LineInjector.REMOVE,
 				new LocalParameterVarCapture(0, NameRef.GET_BLOCK_LIGHT_MATCHER),
 				new LocalIndexedVarCapture(NameRef.PACKET_BUFFER_NAME, 1),
 				new InvokeInjector(WRITE_PACKET_DATA)
 			),
 			new LineInjector(
-				new MethodMatcher(NameRef.SET_SKY_LIGHT_MATCHER),
+				new MethodMatcher(NameRef.GET_SKY_LIGHT_MATCHER),
 				LineInjector.REMOVE
 			)
 		);

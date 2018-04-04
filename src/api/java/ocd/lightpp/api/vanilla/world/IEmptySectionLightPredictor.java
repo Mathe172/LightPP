@@ -34,4 +34,6 @@ public interface IEmptySectionLightPredictor<LD, LI, WI, C>
 	Positioned<LD, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface, C container);
 
 	WI getStorageInterface(BlockPos pos, BlockPos upperPos, LI lightInterface);
+
+	C createContainer();
 }

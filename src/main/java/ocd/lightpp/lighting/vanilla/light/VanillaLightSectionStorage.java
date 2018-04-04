@@ -37,7 +37,9 @@ import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.api.vanilla.world.ILightStorageHandler;
+import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 import ocd.lightpp.lighting.vanilla.light.VanillaLightSectionStorage.Container;
+import ocd.lightpp.lighting.vanilla.light.VanillaLightSectionStorage.Container.Extended;
 
 public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>>
 	implements ILightStorage<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Container.Extended<T, HC>, T>
@@ -58,6 +60,12 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	public Writeable<IVanillaLightDescriptor, IVanillaLightInterface> bind(final BlockPos pos, final Container.Extended<T, HC> container)
 	{
 		return container.bind(this, pos);
+	}
+
+	@Override
+	public Container.Extended<T, HC> createContainer()
+	{
+		return new Container.Extended<>(this.handler.newContainer());
 	}
 
 	@Override
@@ -84,13 +92,13 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	@Override
 	public IVanillaLightWorldInterface getStorageInterface(final BlockPos pos)
 	{
-		return new Container<>(this.handler.newContainer()).bind(pos);
+		return new Container<>(this.handler.newContainer()).bind(this, pos);
 	}
 
 	@Override
 	public Positioned<IVanillaLightDescriptor, IVanillaLightInterface> bind(final BlockPos pos)
 	{
-		return new Container.Extended<>(this.handler.newContainer()).bind(this, pos);
+		return this.createContainer().bind(this, pos);
 	}
 
 	@Override
@@ -224,8 +232,9 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 			this.handlerContainer = handlerContainer;
 		}
 
-		Container<T, HC> bind(final BlockPos pos)
+		Container<T, HC> bind(final VanillaLightSectionStorage<T, HC> sectionStorage, final BlockPos pos)
 		{
+			this.sectionStorage = sectionStorage;
 			this.sectionStorage.handler.bind(pos, this.handlerContainer);
 
 			return this;
@@ -254,10 +263,10 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 				super(handlerContainer);
 			}
 
-			Writeable<IVanillaLightDescriptor, IVanillaLightInterface> bind(final VanillaLightSectionStorage<T, HC> sectionStorage, final BlockPos pos)
+			@Override
+			Container.Extended<T, HC> bind(final VanillaLightSectionStorage<T, HC> sectionStorage, final BlockPos pos)
 			{
-				this.sectionStorage = sectionStorage;
-				super.bind(pos);
+				super.bind(sectionStorage, pos);
 
 				return this;
 			}
@@ -314,7 +323,7 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 			@Override
 			public boolean next()
 			{
-				for (; ++this.curIndex < IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length; ++this.curIndex)
+				for (; ++this.curIndex < IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length; )
 				{
 					final T storage = this.sectionStorage.skyBlockStorages[this.curIndex];
 
@@ -329,6 +338,36 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 
 				return false;
 			}
+		}
+	}
+
+	public static class Provider<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>> implements ILightStorageProvider<
+		IVanillaLightDescriptor,
+		IVanillaLightInterface,
+		IVanillaLightWorldInterface,
+		Container.Extended<T, HC>,
+		T
+		>
+	{
+		private final ILightStorageHandler<T, HC> handler;
+		private final boolean hasSkyLight;
+
+		public Provider(final ILightStorageHandler<T, HC> handler, final boolean hasSkyLight)
+		{
+			this.handler = handler;
+			this.hasSkyLight = hasSkyLight;
+		}
+
+		@Override
+		public ILightStorage<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Extended<T, HC>, T> createLightStorage()
+		{
+			return new VanillaLightSectionStorage<>(this.handler, this.hasSkyLight);
+		}
+
+		@Override
+		public Container.Extended<T, HC> createContainer()
+		{
+			return new Container.Extended<>(this.handler.newContainer());
 		}
 	}
 }

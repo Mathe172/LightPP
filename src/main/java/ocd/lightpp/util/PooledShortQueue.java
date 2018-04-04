@@ -47,13 +47,13 @@ public class PooledShortQueue implements IEmpty
 
 		private class PooledShortQueueSegment
 		{
-			private final short[] shortArray = new short[QUEUE_SEGMENT_SIZE];
+			private final short[] shortArray = new short[SegmentPool.this.QUEUE_SEGMENT_SIZE];
 			private int index = 0;
 			private PooledShortQueueSegment next;
 
 			private void release()
 			{
-				if (SegmentPool.this.pooledCount >= CACHED_QUEUE_SEGMENTS_COUNT)
+				if (SegmentPool.this.pooledCount >= SegmentPool.this.CACHED_QUEUE_SEGMENTS_COUNT)
 					return;
 
 				this.index = 0;
@@ -67,7 +67,7 @@ public class PooledShortQueue implements IEmpty
 			{
 				PooledShortQueueSegment ret = this;
 
-				if (this.index == QUEUE_SEGMENT_SIZE)
+				if (this.index == SegmentPool.this.QUEUE_SEGMENT_SIZE)
 					ret = this.next = SegmentPool.this.getShortQueueSegment();
 
 				ret.shortArray[ret.index++] = val;
@@ -88,6 +88,8 @@ public class PooledShortQueue implements IEmpty
 			--this.pooledCount;
 			final PooledShortQueueSegment ret = this.head;
 			this.head = this.head.next;
+			ret.next = null;
+
 			return ret;
 		}
 	}
@@ -132,6 +134,6 @@ public class PooledShortQueue implements IEmpty
 	@Override
 	public boolean isEmpty()
 	{
-		return this.size > 0;
+		return this.size == 0;
 	}
 }

@@ -76,7 +76,7 @@ public class VanillaLightMap implements ILightMap<IVanillaLightDescriptor, IVani
 			@Override
 			public boolean next()
 			{
-				for (; ++this.curIndex < IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length; ++this.curIndex)
+				for (; ++this.curIndex < IVanillaLightDescriptor.SKY_BLOCKS_VALUES.length; )
 					if (this.getLight() != 0)
 					{
 						this.desc.setSkyBlock(IVanillaLightDescriptor.SKY_BLOCKS_VALUES[this.curIndex]);

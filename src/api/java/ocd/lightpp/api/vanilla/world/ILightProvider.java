@@ -36,6 +36,8 @@ public interface ILightProvider<LD, LI, WI>
 	interface Cached<D, LI, WI, C> extends ILightProvider<D, LI, WI>
 	{
 		Positioned<D, LI> bind(BlockPos pos, C container);
+
+		C createContainer();
 	}
 
 	interface Positioned<LD, LI>

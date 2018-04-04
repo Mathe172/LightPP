@@ -35,11 +35,13 @@ import ocd.lightpp.api.vanilla.light.IVanillaLightWorldInterface;
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.lighting.vanilla.light.VanillaEmptySectionLightPredictor.Container;
+import ocd.lightpp.lighting.vanilla.light.VanillaEmptySectionLightPredictor.Container.Extended;
 
 public class VanillaEmptySectionLightPredictor
 	implements IEmptySectionLightPredictor<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightWorldInterface, Container.Extended>
 {
-	@Override public Positioned<IVanillaLightDescriptor, IVanillaLightInterface> bind(
+	@Override
+	public Positioned<IVanillaLightDescriptor, IVanillaLightInterface> bind(
 		final BlockPos pos,
 		final BlockPos upperPos,
 		final IVanillaLightInterface lightInterface
@@ -66,7 +68,13 @@ public class VanillaEmptySectionLightPredictor
 		final IVanillaLightInterface lightInterface
 	)
 	{
-		return new Container().bind(lightInterface);
+		return this.createContainer().bind(lightInterface);
+	}
+
+	@Override
+	public Extended createContainer()
+	{
+		return new Container.Extended();
 	}
 
 	public static class Container

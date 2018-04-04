@@ -60,6 +60,12 @@ public class VanillaSkyLightProvider
 	}
 
 	@Override
+	public Container createContainer()
+	{
+		return new Container();
+	}
+
+	@Override
 	public int getLight(final EnumSkyBlock lightType)
 	{
 		return lightType == EnumSkyBlock.SKY ? EnumSkyBlock.SKY.defaultLightValue : 0;

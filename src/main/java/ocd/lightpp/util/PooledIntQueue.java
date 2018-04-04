@@ -88,6 +88,8 @@ public class PooledIntQueue implements IEmpty
 			--this.pooledCount;
 			final PooledIntQueueSegment ret = this.head;
 			this.head = this.head.next;
+			ret.next = null;
+
 			return ret;
 		}
 	}
@@ -132,6 +134,6 @@ public class PooledIntQueue implements IEmpty
 	@Override
 	public boolean isEmpty()
 	{
-		return this.size > 0;
+		return this.size == 0;
 	}
 }

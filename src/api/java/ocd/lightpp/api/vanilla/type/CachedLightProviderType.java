@@ -39,7 +39,7 @@ public class CachedLightProviderType<LD, LI, WI, C>
 		this.containerType = containerType;
 	}
 
-	public static abstract class TypedCachedLightProvider<LD, LI, WI, C>
+	public static class TypedCachedLightProvider<LD, LI, WI, C>
 	{
 		public final CachedLightProviderType<LD, LI, WI, C> type;
 		public final ILightProvider.Cached<LD, LI, WI, C> provider;
@@ -49,7 +49,5 @@ public class CachedLightProviderType<LD, LI, WI, C>
 			this.type = type;
 			this.provider = provider;
 		}
-
-		public abstract C createContainer();
 	}
 }

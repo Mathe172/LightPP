@@ -138,17 +138,20 @@ public class VanillaLightStorageHandler implements ILightStorageHandler<NibbleAr
 			return this;
 		}
 
-		@Override public int get(final NibbleArray storage)
+		@Override
+		public int get(final NibbleArray storage)
 		{
 			return storage.getFromIndex(this.index);
 		}
 
-		@Override public void set(final NibbleArray storage, final int value)
+		@Override
+		public void set(final NibbleArray storage, final int value)
 		{
 			storage.setIndex(this.index, value);
 		}
 
-		@Override public Positioned<NibbleArray> get()
+		@Override
+		public Positioned<NibbleArray> get()
 		{
 			return this;
 		}
