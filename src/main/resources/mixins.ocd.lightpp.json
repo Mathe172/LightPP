@@ -8,6 +8,7 @@
 		"MixinChunkLightStorage",
 		"MixinWorldLightStorage",
 		"MixinAnvilChunkLoader",
-		"MixinSPacketChunkData"
+		"MixinSPacketChunkData",
+		"MixinWorldLightingEngine"
 	]
 }

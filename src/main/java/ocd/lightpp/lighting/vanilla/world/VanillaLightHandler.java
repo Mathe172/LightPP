@@ -238,7 +238,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 	private final Deque<ILightCollectionQueueDataset<LD, LCD, PooledShortQueue>> lightCollectionDataSetCache = new ArrayDeque<>();
 	private final Deque<PooledShortQueue> dataQueueCache = new ArrayDeque<>();
 
-	<WI> VanillaLightHandler(
+	public <WI> VanillaLightHandler(
 		final World world,
 		final ILightStorageProvider<LD, LI, WI, C, NibbleArray> lightStorageProvider,
 		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?> skyLightProvider,
