@@ -25,6 +25,7 @@
 
 package ocd.lightpp.api.vanilla.type;
 
+import ocd.lightpp.api.vanilla.type.ContainerType.TypedContainer;
 import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 
 public class TypedLightStorageProvider<LD, LI, WI, LC, WC, T>
@@ -44,5 +45,15 @@ public class TypedLightStorageProvider<LD, LI, WI, LC, WC, T>
 	public TypedLightStorage<LD, LI, WI, LC, WC, T> createLightStorage()
 	{
 		return new TypedLightStorage<>(this.type, this.provider.createLightStorage());
+	}
+
+	public TypedContainer<LC> createLightContainer()
+	{
+		return new TypedContainer<>(this.type.lightContainerType, this.provider.createLightContainer());
+	}
+
+	public TypedContainer<WC> createWorldLightContainer()
+	{
+		return new TypedContainer<>(this.type.worldLightContainerType, this.provider.createWorldLightContainer());
 	}
 }

@@ -23,19 +23,23 @@
  *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.lighting.vanilla.world;
 
-import javax.annotation.Nullable;
-
-import net.minecraft.util.math.BlockPos;
 import ocd.lightpp.api.vanilla.type.ContainerType.TypedContainer;
+import ocd.lightpp.api.vanilla.world.IVanillaWorldLightProvider;
 
-public interface IVanillaChunkLightProvider
+public class WorldLightContainerCache extends ThreadLocal<TypedContainer<?>>
 {
-	/**
-	 * May be reused per thread
-	 */
-	Object getWorldLightInterface(final BlockPos pos);
+	private final IVanillaWorldLightProvider provider;
 
-	Object getWorldLightInterface(final BlockPos pos, final @Nullable TypedContainer<?> container);
+	public WorldLightContainerCache(final IVanillaWorldLightProvider provider)
+	{
+		this.provider = provider;
+	}
+
+	@Override
+	protected TypedContainer<?> initialValue()
+	{
+		return this.provider.createWorldLightContainer();
+	}
 }

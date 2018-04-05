@@ -32,6 +32,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
+import ocd.lightpp.api.vanilla.type.ContainerType.TypedContainer;
 import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
 import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
@@ -46,7 +47,14 @@ public interface IVanillaWorldLightProvider
 
 	TypedLightProvider<?, ?, ?> getEmptyLightProvider();
 
-	Object getWorldLightInterface(Chunk chunk, final BlockPos pos);
+	TypedContainer<?> createWorldLightContainer();
+
+	/**
+	 * May be reused per thread
+	 */
+	Object getWorldLightInterface(Chunk chunk, BlockPos pos);
+
+	Object getWorldLightInterface(Chunk chunk, BlockPos pos, @Nullable TypedContainer<?> container);
 
 	void createLightStorage(ExtendedBlockStorage blockStorage);
 

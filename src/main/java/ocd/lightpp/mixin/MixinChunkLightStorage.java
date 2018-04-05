@@ -38,6 +38,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
+import ocd.lightpp.api.vanilla.type.ContainerType.TypedContainer;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ICleanable;
 import ocd.lightpp.api.vanilla.world.IVanillaChunkLightProvider;
@@ -122,6 +123,13 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	{
 		final IVanillaWorldLightProvider worldLightProvider = ((IVanillaWorldLightProvider) this.world);
 		return worldLightProvider.getWorldLightInterface((Chunk) (Object) this, pos);
+	}
+
+	@Override
+	public Object getWorldLightInterface(final BlockPos pos, final @Nullable TypedContainer<?> container)
+	{
+		final IVanillaWorldLightProvider worldLightProvider = ((IVanillaWorldLightProvider) this.world);
+		return worldLightProvider.getWorldLightInterface((Chunk) (Object) this, pos, container);
 	}
 
 	@Override

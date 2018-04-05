@@ -56,6 +56,12 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	}
 
 	@Override
+	public Writeable<IVanillaLightDescriptor, IVanillaLightInterface> bind(final BlockPos pos)
+	{
+		return this.bind(pos, this.createLightContainer());
+	}
+
+	@Override
 	public Writeable<IVanillaLightDescriptor, IVanillaLightInterface> bind(final BlockPos pos, final Container.Extended<T, HC> container)
 	{
 		return container.bind(this, pos);
@@ -104,12 +110,6 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos)
 	{
 		return this.getWorldLightInterface(pos, this.createWorldLightContainer());
-	}
-
-	@Override
-	public Positioned<IVanillaLightDescriptor, IVanillaLightInterface> bind(final BlockPos pos)
-	{
-		return this.bind(pos, this.createLightContainer());
 	}
 
 	@Override

@@ -34,6 +34,9 @@ import net.minecraft.world.EnumSkyBlock;
 public interface ILightStorage<LD, LI, WI, LC, WC, T> extends ILightProvider.Cached<LD, LI, WI, LC, WC>
 {
 	@Override
+	Positioned.Writeable<LD, LI> bind(BlockPos pos);
+
+	@Override
 	Positioned.Writeable<LD, LI> bind(BlockPos pos, LC container);
 
 	/**

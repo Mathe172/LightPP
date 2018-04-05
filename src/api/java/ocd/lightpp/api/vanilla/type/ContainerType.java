@@ -27,4 +27,15 @@ package ocd.lightpp.api.vanilla.type;
 
 public class ContainerType<C>
 {
+	public static class TypedContainer<C>
+	{
+		public final ContainerType<C> type;
+		public final C container;
+
+		public TypedContainer(final ContainerType<C> type, final C container)
+		{
+			this.type = type;
+			this.container = container;
+		}
+	}
 }

@@ -39,22 +39,21 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
-import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
-import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
-import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
-import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
+import ocd.lightpp.lighting.vanilla.world.VanillaWorldLightManager.LightContainer;
 
-abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>, LI, C>
+abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>, LI, LC, SC, EC>
 	implements ILightAccess.Extended<LD, LI, IVanillaWorldInterface.Extended>, IVanillaWorldInterface.Extended
 {
-	private final VanillaLightHandler<LD, LCD, LI, ?, C> lightHandler;
+	private final VanillaLightHandler<LD, LCD, LI, ?, LC, SC, EC> lightHandler;
 
-	SectionContainer<LD, LI, C> section;
+	private final LightContainer<LC, SC, EC> lightContainer;
+
+	SectionContainer<LD, LI, LC> section;
 
 	private @Nullable Writeable<LD, ? extends LI> lightInterfaceWriteable;
 	private ILightStorage.Positioned<LD, ? extends LI> lightInterface;
@@ -64,22 +63,15 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 
 	short data;
 
-	final VanillaWorldLightHelper<LD, LI, ?, C, ?, ?, ?, ?, ?> lightManager;
-
 	private final MutableBlockPos cachedPos = new MutableBlockPos();
 
-	<WI> VanillaLightAccess(
-		final TypedLightStorageProvider<LD, LI, WI, C, ?, NibbleArray> lightStorageProvider,
-		@Nullable final TypedCachedLightProvider<LD, LI, WI, ?, ?> skyLightProvider,
-		@Nullable final TypedEmptySectionLightPredictor<LD, LI, WI, ?, ?> emptySectionLightPredictor,
-		final TypedLightProvider<LD, LI, WI> emptyLightProvider
-	)
+	VanillaLightAccess(final VanillaWorldLightManager<?, ?, ?, LC, ?, SC, ?, EC, ?> lightManager)
 	{
 		this.lightHandler = this.getLightHandler();
-		this.lightManager = new VanillaWorldLightHelper<>(lightStorageProvider, skyLightProvider, emptySectionLightPredictor, emptyLightProvider);
+		this.lightContainer = lightManager.createLightContainer().container;
 	}
 
-	protected abstract VanillaLightHandler<LD, LCD, LI, ?, C> getLightHandler();
+	protected abstract VanillaLightHandler<LD, LCD, LI, ?, LC, SC, EC> getLightHandler();
 
 	void update()
 	{
@@ -87,13 +79,13 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		{
 			this.upperPos.setPos(this.pos.getX(), this.section.upperPos.getY(), this.pos.getZ());
 			this.lightInterfaceWriteable = null;
-			this.lightInterface = this.lightManager.getLightInterface(this.pos, this.section.upperLightStorage, this.upperPos);
+			this.lightInterface = this.lightHandler.lightManager.getLightInterface(this.pos, this.section.upperLightStorage, this.upperPos, this.lightContainer);
 		}
 		else
-			this.lightInterface = this.lightInterfaceWriteable = this.lightManager.getCachedPositioned(this.pos, this.section.lightStorage);
+			this.lightInterface = this.lightInterfaceWriteable = VanillaWorldLightManager.getWriteable(this.pos, this.section.lightStorage, this.lightContainer);
 	}
 
-	void update(final SectionContainer<LD, LI, C> section, final BlockPos pos, final short data)
+	void update(final SectionContainer<LD, LI, LC> section, final BlockPos pos, final short data)
 	{
 		this.section = section;
 		this.data = data;
@@ -139,7 +131,7 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		return this.lightInterface.getLight(desc);
 	}
 
-	private @Nullable SectionContainer<LD, LI, C> getLowerSection(@Nullable final SectionContainer<LD, LI, C> section, final long lowerSectionCoords)
+	private @Nullable SectionContainer<LD, LI, LC> getLowerSection(@Nullable final SectionContainer<LD, LI, LC> section, final long lowerSectionCoords)
 	{
 		return section == null ? this.lightHandler.getExistingSection(lowerSectionCoords) : this.lightHandler.getExistingSection(section, EnumFacing.DOWN);
 	}
@@ -147,15 +139,15 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 	private void initStorage(
 		final ExtendedBlockStorage[] storageArrays,
 		final int yIndex,
-		@Nullable SectionContainer<LD, LI, C> section,
+		@Nullable SectionContainer<LD, LI, LC> section,
 		long sectionCoords,
 		final BlockPos pos,
-		final @Nullable ILightStorage<LD, ? extends LI, ?, C, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<LD, ? extends LI, ?, LC, ?, ?> upperLightStorage,
 		final BlockPos upperPos
 	)
 	{
 		ExtendedBlockStorage blockStorage = new ExtendedBlockStorage(yIndex << 4, this.lightHandler.world.provider.hasSkyLight());
-		final TypedLightStorage<LD, LI, ?, C, ?, NibbleArray> lightStorage = this.lightManager.createInitLightStorage(
+		final TypedLightStorage<LD, LI, ?, LC, ?, NibbleArray> lightStorage = this.lightHandler.lightHelper.createInitLightStorage(
 			pos,
 			upperLightStorage,
 			upperPos
@@ -288,7 +280,7 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		return this.pos;
 	}
 
-	static class SectionContainer<LD, LI, C>
+	static class SectionContainer<LD, LI, LC>
 	{
 		final int index;
 
@@ -298,14 +290,14 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		long sectionCoords;
 		boolean isValid;
 		@SuppressWarnings("unchecked") // Fuck you Java
-		final SectionContainer<LD, LI, C>[] neighbors = new SectionContainer[6];
+		final SectionContainer<LD, LI, LC>[] neighbors = new SectionContainer[6];
 		int yIndex;
 
 		ExtendedBlockStorage blockStorage;
-		@Nullable ILightStorage<LD, ? extends LI, ?, C, ?, ?> lightStorage;
+		@Nullable ILightStorage<LD, ? extends LI, ?, LC, ?, ?> lightStorage;
 
 		final MutableBlockPos upperPos = new MutableBlockPos();
-		@Nullable ILightStorage<LD, ? extends LI, ?, C, ?, ?> upperLightStorage;
+		@Nullable ILightStorage<LD, ? extends LI, ?, LC, ?, ?> upperLightStorage;
 
 		boolean initLowerStorage;
 
@@ -339,12 +331,12 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 			this.initLowerStorage = false;
 		}
 
-		@Nullable SectionContainer<LD, LI, C> getNeighbor(final EnumFacing dir)
+		@Nullable SectionContainer<LD, LI, LC> getNeighbor(final EnumFacing dir)
 		{
 			return this.neighbors[dir.ordinal()];
 		}
 
-		void setNeighbor(final SectionContainer<LD, LI, C> neighbor, final EnumFacing dir)
+		void setNeighbor(final SectionContainer<LD, LI, LC> neighbor, final EnumFacing dir)
 		{
 			this.neighbors[dir.ordinal()] = neighbor;
 			neighbor.neighbors[dir.getOpposite().ordinal()] = this;

@@ -31,29 +31,28 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.chunk.NibbleArray;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
-import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
-import ocd.lightpp.api.vanilla.type.LightProviderType.TypedLightProvider;
-import ocd.lightpp.api.vanilla.type.TypedEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
-import ocd.lightpp.api.vanilla.type.TypedLightStorageProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
+import ocd.lightpp.lighting.vanilla.world.VanillaWorldLightManager.LightContainer;
 
-public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
-	extends VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
+public class VanillaWorldLightHelper<D, LI, WI, LC, SC, EC>
 {
+	public final VanillaWorldLightManager<D, LI, WI, LC, ?, SC, ?, EC, ?> lightManager;
+
+	private final LightContainer<LC, SC, EC> lightContainer;
+	private final LightContainer<LC, SC, EC> upperLightContainer;
+
 	private final MutableBlockPos cachedIterPos = new MutableBlockPos();
 	private final MutableBlockPos cachedIterUpperPos = new MutableBlockPos();
 
-	public VanillaWorldLightHelper(
-		final TypedLightStorageProvider<D, LI, WI, LLC, LWC, NibbleArray> lightStorageProvider,
-		@Nullable final TypedCachedLightProvider<D, LI, WI, SLC, SWC> skyLightProvider,
-		@Nullable final TypedEmptySectionLightPredictor<D, LI, WI, ELC, EWC> emptySectionLightPredictor,
-		final TypedLightProvider<D, LI, WI> emptyLightProvider
-	)
+	public VanillaWorldLightHelper(final VanillaWorldLightManager<D, LI, WI, LC, ?, SC, ?, EC, ?> lightManager)
 	{
-		super(lightStorageProvider, skyLightProvider, emptySectionLightPredictor, emptyLightProvider);
+		this.lightManager = lightManager;
+
+		this.lightContainer = lightManager.createLightContainer().container;
+		this.upperLightContainer = lightManager.createLightContainer().container;
 	}
 
 	public void initLight(
@@ -64,31 +63,32 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	)
 	{
 		this.initLight(
-			this.checkCachedProviderType(lightStorage),
+			this.lightManager.checkCachedProviderType(lightStorage),
 			basePos,
-			upperLightStorage == null ? null : this.checkCachedProviderType(upperLightStorage),
+			upperLightStorage == null ? null : this.lightManager.checkCachedProviderType(upperLightStorage),
 			upperBasePos
 		);
 	}
 
 	public void initLight(
-		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
+		final ILightStorage<D, ? extends LI, ?, LC, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
 		if (upperLightStorage == null)
 		{
-			if (this.skyLightProvider == null)
+			if (this.lightManager.skyLightProvider == null)
 				return;
 
 			for (int x = 0; x < 16; ++x)
 				for (int z = 0; z < 16; ++z)
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, ? extends LI> lightInterface = this.getCachedSkyLightPositioned(
-							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z)
+						final Positioned<D, ? extends LI> lightInterface = this.lightManager.getSkyLightPositioned(
+							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z),
+							this.lightContainer
 						);
 
 						this.copyLightData(lightStorage, lightInterface);
@@ -96,23 +96,25 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		}
 		else
 		{
-			if (this.emptySectionLightPredictor == null)
+			if (this.lightManager.emptySectionLightPredictor == null)
 				return;
 
 			for (int x = 0; x < 16; ++x)
 				for (int z = 0; z < 16; ++z)
 				{
-					final LI upperLightInterface = this.getCachedUpperPositioned(
+					final LI upperLightInterface = VanillaWorldLightManager.getWriteable(
 						this.cachedIterUpperPos.setPos(upperBasePos.getX() + x, upperBasePos.getY(), upperBasePos.getZ() + z),
-						upperLightStorage
+						upperLightStorage,
+						this.upperLightContainer
 					).getInterface();
 
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, ? extends LI> lightInterface = this.getCachedEmptySectionPredictorPositioned(
+						final Positioned<D, ? extends LI> lightInterface = this.lightManager.getEmptySectionPredictorPositioned(
 							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z),
 							this.cachedIterUpperPos,
-							upperLightInterface
+							upperLightInterface,
+							this.lightContainer
 						);
 
 						this.copyLightData(lightStorage, lightInterface);
@@ -121,7 +123,7 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		}
 	}
 
-	public TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> createInitLightStorage(
+	public TypedLightStorage<D, LI, WI, LC, ?, NibbleArray> createInitLightStorage(
 		final BlockPos basePos,
 		final @Nullable TypedLightStorage<?, ?, ?, ?, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
@@ -129,29 +131,29 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	{
 		return this.createInitLightStorage(
 			basePos,
-			upperLightStorage == null ? null : this.checkCachedProviderType(upperLightStorage),
+			upperLightStorage == null ? null : this.lightManager.checkCachedProviderType(upperLightStorage),
 			upperBasePos
 		);
 	}
 
-	public TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> createInitLightStorage(
+	public TypedLightStorage<D, LI, WI, LC, ?, NibbleArray> createInitLightStorage(
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
-		final TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> lightStorage = this.createLightStorage();
+		final TypedLightStorage<D, LI, WI, LC, ?, NibbleArray> lightStorage = this.lightManager.createLightStorage();
 		this.initLight(lightStorage.storage, basePos, upperLightStorage, upperBasePos);
 
 		return lightStorage;
 	}
 
 	private void copyLightData(
-		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
+		final ILightStorage<D, ? extends LI, ?, LC, ?, ?> lightStorage,
 		final Positioned<D, ? extends LI> lightInterface
 	)
 	{
-		final Writeable<D, ? extends LI> writeAccess = this.getCachedPositioned(this.cachedIterPos, lightStorage);
+		final Writeable<D, ? extends LI> writeAccess = VanillaWorldLightManager.getWriteable(this.cachedIterPos, lightStorage, this.lightContainer);
 
 		for (final ILightIterator<D> it = lightInterface.getLightIterator(); it.next(); )
 		{
@@ -177,31 +179,32 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	)
 	{
 		return this.isLightTrivial(
-			this.checkCachedProviderType(lightStorage),
+			this.lightManager.checkCachedProviderType(lightStorage),
 			basePos,
-			upperLightStorage == null ? null : this.checkCachedProviderType(upperLightStorage),
+			upperLightStorage == null ? null : this.lightManager.checkCachedProviderType(upperLightStorage),
 			upperBasePos
 		);
 	}
 
 	public boolean isLightTrivial(
-		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
+		final ILightStorage<D, ? extends LI, ?, LC, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
 		if (upperLightStorage == null)
 		{
-			if (this.skyLightProvider == null)
+			if (this.lightManager.skyLightProvider == null)
 				return true;
 
 			for (int x = 0; x < 16; ++x)
 				for (int z = 0; z < 16; ++z)
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, ? extends LI> refLightInterface = this.getCachedSkyLightPositioned(
-							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z)
+						final Positioned<D, ? extends LI> refLightInterface = this.lightManager.getSkyLightPositioned(
+							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z),
+							this.lightContainer
 						);
 
 						if (this.compareLightData(lightStorage, refLightInterface))
@@ -210,23 +213,25 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		}
 		else
 		{
-			if (this.emptySectionLightPredictor == null)
+			if (this.lightManager.emptySectionLightPredictor == null)
 				return true;
 
 			for (int x = 0; x < 16; ++x)
 				for (int z = 0; z < 16; ++z)
 				{
-					final LI upperLightInterface = this.getCachedUpperPositioned(
+					final LI upperLightInterface = VanillaWorldLightManager.getWriteable(
 						this.cachedIterUpperPos.setPos(upperBasePos.getX() + x, upperBasePos.getY(), upperBasePos.getZ() + z),
-						upperLightStorage
+						upperLightStorage,
+						this.upperLightContainer
 					).getInterface();
 
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, ? extends LI> refLightInterface = this.getCachedEmptySectionPredictorPositioned(
+						final Positioned<D, ? extends LI> refLightInterface = this.lightManager.getEmptySectionPredictorPositioned(
 							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z),
 							this.cachedIterUpperPos,
-							upperLightInterface
+							upperLightInterface,
+							this.lightContainer
 						);
 
 						if (!this.compareLightData(lightStorage, refLightInterface))
@@ -239,11 +244,11 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	}
 
 	private boolean compareLightData(
-		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
+		final ILightStorage<D, ? extends LI, ?, LC, ?, ?> lightStorage,
 		final Positioned<D, ? extends LI> refLightInterface
 	)
 	{
-		final Positioned<D, ? extends LI> lightInterface = this.getCachedPositioned(this.cachedIterPos, lightStorage);
+		final Positioned<D, ? extends LI> lightInterface = VanillaWorldLightManager.getWriteable(this.cachedIterPos, lightStorage, this.lightContainer);
 
 		for (final ILightIterator<D> it = refLightInterface.getLightIterator(); it.next(); )
 			if (lightInterface.getLight(it.getDescriptor()) != it.getLight())
