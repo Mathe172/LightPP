@@ -40,25 +40,25 @@ public interface ILightAccess<LI, WI>
 
 	WI getWorldInterface();
 
-	interface Extended<D, LI, WI> extends ILightAccess<LI, WI>
+	interface Extended<LD, LI, WI> extends ILightAccess<LI, WI>
 	{
-		ILightIterator<D> getLightIterator();
+		ILightIterator<LD> getLightIterator();
 
-		int getLight(D desc);
+		int getLight(LD desc);
 
-		void setLight(D desc, int val);
+		void setLight(LD desc, int val);
 
-		void notifyLightSet(D desc);
+		void notifyLightSet(LD desc);
 	}
 
 	interface NeighborAware<LI, WI> extends ILightAccess<LI, WI>
 	{
 		ILightAccess<LI, WI> getNeighbor(EnumFacing dir);
 
-		interface Extended<D, LI, WI> extends ILightAccess.NeighborAware<LI, WI>, ILightAccess.Extended<D, LI, WI>
+		interface Extended<LD, LI, WI> extends ILightAccess.NeighborAware<LI, WI>, ILightAccess.Extended<LD, LI, WI>
 		{
 			@Override
-			ILightAccess.Extended<D, LI, WI> getNeighbor(EnumFacing dir);
+			ILightAccess.Extended<LD, LI, WI> getNeighbor(EnumFacing dir);
 		}
 	}
 
@@ -66,7 +66,7 @@ public interface ILightAccess<LI, WI>
 	{
 		interface NeighborAware<LI, WI, V> extends ILightAccess.NeighborAware<LI, WI>, VirtuallySourced<LI, WI, V>
 		{
-			interface Extended<D, LI, WI, V> extends ILightAccess.VirtuallySourced.NeighborAware<LI, WI, V>, ILightAccess.NeighborAware.Extended<D, LI, WI>
+			interface Extended<LD, LI, WI, V> extends ILightAccess.VirtuallySourced.NeighborAware<LI, WI, V>, ILightAccess.NeighborAware.Extended<LD, LI, WI>
 			{
 			}
 		}

@@ -30,9 +30,12 @@ import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
 public class TypedEmptySectionLightPredictor<LD, LI, WI, LC, WC>
 {
 	public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
-	public final IEmptySectionLightPredictor<LD, LI, WI, LC, WC> predictor;
+	public final IEmptySectionLightPredictor<LD, LI, ? extends WI, LC, WC> predictor;
 
-	public TypedEmptySectionLightPredictor(final CachedLightProviderType<LD, LI, WI, LC, WC> type, final IEmptySectionLightPredictor<LD, LI, WI, LC, WC> predictor)
+	public TypedEmptySectionLightPredictor(
+		final CachedLightProviderType<LD, LI, WI, LC, WC> type,
+		final IEmptySectionLightPredictor<LD, LI, ? extends WI, LC, WC> predictor
+	)
 	{
 		this.type = type;
 		this.predictor = predictor;

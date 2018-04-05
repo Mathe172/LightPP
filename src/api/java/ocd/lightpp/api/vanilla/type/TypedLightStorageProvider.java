@@ -30,9 +30,12 @@ import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 public class TypedLightStorageProvider<LD, LI, WI, LC, WC, T>
 {
 	public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
-	public final ILightStorageProvider<LD, LI, WI, LC, WC, T> provider;
+	public final ILightStorageProvider<LD, ? extends LI, ? extends WI, LC, WC, T> provider;
 
-	public TypedLightStorageProvider(final CachedLightProviderType<LD, LI, WI, LC, WC> type, final ILightStorageProvider<LD, LI, WI, LC, WC, T> provider)
+	public TypedLightStorageProvider(
+		final CachedLightProviderType<LD, LI, WI, LC, WC> type,
+		final ILightStorageProvider<LD, ? extends LI, ? extends WI, LC, WC, T> provider
+	)
 	{
 		this.type = type;
 		this.provider = provider;

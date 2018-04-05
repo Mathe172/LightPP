@@ -56,7 +56,7 @@ public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, 
 	private final int maxLight;
 
 	private final ILightHandler<LD, LCD, LI, WI, V> lightHandler;
-	private final ILightPropagator<? super LD, ? super LCD, ? super MI, ? super LI, ? super WI, ? super V> lightPropagator;
+	private final ILightPropagator<LD, LCD, ? super MI, ? super LI, ? super WI, ? super V> lightPropagator;
 
 	private final ILightCheckQueue<LD, LCD, LI, WI, V> queuedChecks;
 	private final ILightSpreadQueue<LD, LI, WI, V> queuedSpreads;
@@ -84,7 +84,7 @@ public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, 
 	public LightingEngine(
 		final ILightHandler<LD, LCD, LI, WI, V> lightHandler,
 		final int maxLight,
-		final ILightPropagator<? super LD, ? super LCD, ? super MI, ? super LI, ? super WI, ? super V> lightPropagator,
+		final ILightPropagator<LD, LCD, ? super MI, ? super LI, ? super WI, ? super V> lightPropagator,
 		final Supplier<? extends ILightMap<LD, MI>> lightMapProvider,
 		final Profiler profiler)
 	{

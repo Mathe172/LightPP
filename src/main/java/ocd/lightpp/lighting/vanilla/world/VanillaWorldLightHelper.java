@@ -72,9 +72,9 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	}
 
 	public void initLight(
-		final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage,
+		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -87,7 +87,7 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 				for (int z = 0; z < 16; ++z)
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, LI> lightInterface = this.getCachedSkyLightPositioned(
+						final Positioned<D, ? extends LI> lightInterface = this.getCachedSkyLightPositioned(
 							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z)
 						);
 
@@ -109,7 +109,7 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, LI> lightInterface = this.getCachedEmptySectionPredictorPositioned(
+						final Positioned<D, ? extends LI> lightInterface = this.getCachedEmptySectionPredictorPositioned(
 							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z),
 							this.cachedIterUpperPos,
 							upperLightInterface
@@ -136,7 +136,7 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 
 	public TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> createInitLightStorage(
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -146,9 +146,12 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		return lightStorage;
 	}
 
-	private void copyLightData(final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage, final Positioned<D, LI> lightInterface)
+	private void copyLightData(
+		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
+		final Positioned<D, ? extends LI> lightInterface
+	)
 	{
-		final Writeable<D, LI> writeAccess = this.getCachedPositioned(this.cachedIterPos, lightStorage);
+		final Writeable<D, ? extends LI> writeAccess = this.getCachedPositioned(this.cachedIterPos, lightStorage);
 
 		for (final ILightIterator<D> it = lightInterface.getLightIterator(); it.next(); )
 		{
@@ -182,9 +185,9 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	}
 
 	public boolean isLightTrivial(
-		final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage,
+		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
 		final BlockPos basePos,
-		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperBasePos
 	)
 	{
@@ -197,7 +200,7 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 				for (int z = 0; z < 16; ++z)
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, LI> refLightInterface = this.getCachedSkyLightPositioned(
+						final Positioned<D, ? extends LI> refLightInterface = this.getCachedSkyLightPositioned(
 							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z)
 						);
 
@@ -220,7 +223,7 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 
 					for (int y = 0; y < 16; ++y)
 					{
-						final Positioned<D, LI> refLightInterface = this.getCachedEmptySectionPredictorPositioned(
+						final Positioned<D, ? extends LI> refLightInterface = this.getCachedEmptySectionPredictorPositioned(
 							this.cachedIterPos.setPos(basePos.getX() + x, basePos.getY() + y, basePos.getZ() + z),
 							this.cachedIterUpperPos,
 							upperLightInterface
@@ -235,9 +238,12 @@ public class VanillaWorldLightHelper<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		return true;
 	}
 
-	private boolean compareLightData(final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage, final Positioned<D, LI> refLightInterface)
+	private boolean compareLightData(
+		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
+		final Positioned<D, ? extends LI> refLightInterface
+	)
 	{
-		final Positioned<D, LI> lightInterface = this.getCachedPositioned(this.cachedIterPos, lightStorage);
+		final Positioned<D, ? extends LI> lightInterface = this.getCachedPositioned(this.cachedIterPos, lightStorage);
 
 		for (final ILightIterator<D> it = refLightInterface.getLightIterator(); it.next(); )
 			if (lightInterface.getLight(it.getDescriptor()) != it.getLight())

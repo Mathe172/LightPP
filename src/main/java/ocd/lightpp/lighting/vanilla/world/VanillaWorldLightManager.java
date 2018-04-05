@@ -82,21 +82,21 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> ILightStorage<D, LI, WI, ?, ?, T> checkProviderType(final TypedLightStorage<?, ?, ?, ?, ?, T> lightStorage)
+	public <T> ILightStorage<D, ? extends LI, ? extends WI, ?, ?, T> checkProviderType(final TypedLightStorage<?, ?, ?, ?, ?, T> lightStorage)
 	{
 		if (this.lightStorageProvider.type.lightProviderType != lightStorage.type.lightProviderType)
 			throw new IllegalStateException("Incompatible light types");
 
-		return (ILightStorage<D, LI, WI, ?, ?, T>) lightStorage.storage;
+		return (ILightStorage<D, ? extends LI, ? extends WI, ?, ?, T>) lightStorage.storage;
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> ILightStorage<D, LI, WI, LLC, ?, T> checkCachedProviderType(final TypedLightStorage<?, ?, ?, ?, ?, T> lightStorage)
+	public <T> ILightStorage<D, ? extends LI, ? extends WI, LLC, ?, T> checkCachedProviderType(final TypedLightStorage<?, ?, ?, ?, ?, T> lightStorage)
 	{
 		if (this.lightStorageProvider.type != lightStorage.type)
 			throw new IllegalStateException("Incompatible light types");
 
-		return (ILightStorage<D, LI, WI, LLC, ?, T>) lightStorage.storage;
+		return (ILightStorage<D, ? extends LI, ? extends WI, LLC, ?, T>) lightStorage.storage;
 	}
 
 	public TypedLightStorage<D, LI, WI, LLC, ?, NibbleArray> createLightStorage()
@@ -146,7 +146,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	}
 
 	public WI getWorldLightInterface(
-		final ILightStorage<?, ?, WI, ?, ?, ?> lightStorage,
+		final ILightStorage<?, ?, ? extends WI, ?, ?, ?> lightStorage,
 		final BlockPos pos
 	)
 	{
@@ -155,7 +155,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 
 	public WI getWorldLightInterface(
 		final BlockPos pos,
-		final @Nullable ILightStorage<?, LI, WI, ?, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<?, ? extends LI, ? extends WI, ?, ?, ?> upperLightStorage,
 		final BlockPos upperPos
 	)
 	{
@@ -180,9 +180,9 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 	}
 
 	public WI getWorldLightInterface(
-		final @Nullable ILightStorage<?, ?, WI, ?, ?, ?> lightStorage,
+		final @Nullable ILightStorage<?, ?, ? extends WI, ?, ?, ?> lightStorage,
 		final BlockPos pos,
-		final @Nullable ILightStorage<?, LI, WI, ?, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<?, ? extends LI, ? extends WI, ?, ?, ?> upperLightStorage,
 		final BlockPos upperPos
 	)
 	{
@@ -192,9 +192,9 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		return this.getWorldLightInterface(pos, upperLightStorage, upperPos);
 	}
 
-	public Positioned<D, LI> getLightInterface(
+	public Positioned<D, ? extends LI> getLightInterface(
 		final BlockPos pos,
-		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperPos
 	)
 	{
@@ -208,10 +208,10 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 			);
 	}
 
-	public Positioned<D, LI> getLightInterface(
-		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage,
+	public Positioned<D, ? extends LI> getLightInterface(
+		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage,
 		final BlockPos pos,
-		final @Nullable ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage,
 		final BlockPos upperPos
 	)
 	{
@@ -234,17 +234,17 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		);
 	}
 
-	public Writeable<D, LI> getCachedPositioned(final BlockPos pos, final ILightStorage<D, LI, ?, LLC, ?, ?> lightStorage)
+	public Writeable<D, ? extends LI> getCachedPositioned(final BlockPos pos, final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> lightStorage)
 	{
 		return getCachedPositioned(pos, this.cachedPos, lightStorage, this.lightStorageContainer);
 	}
 
-	public Writeable<D, LI> getCachedUpperPositioned(final BlockPos upperPos, final ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage)
+	public Writeable<D, ? extends LI> getCachedUpperPositioned(final BlockPos upperPos, final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage)
 	{
 		return getCachedPositioned(upperPos, this.cachedUpperPos, upperLightStorage, this.upperLightStorageContainer);
 	}
 
-	public Positioned<D, LI> getCachedSkyLightPositioned(final BlockPos pos)
+	public Positioned<D, ? extends LI> getCachedSkyLightPositioned(final BlockPos pos)
 	{
 		if (this.skyLightProvider == null)
 			return this.emptyLightProvider.provider.bind(pos);
@@ -252,7 +252,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		return this.skyLightProvider.provider.bind(pos, this.skyLightContainer);
 	}
 
-	public Positioned<D, LI> getCachedEmptySectionPredictorPositioned(
+	public Positioned<D, ? extends LI> getCachedEmptySectionPredictorPositioned(
 		final BlockPos pos,
 		final BlockPos upperPos,
 		final LI upperLightInterface
@@ -269,10 +269,10 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		);
 	}
 
-	public Positioned<D, LI> getCachedEmptySectionPredictorPositioned(
+	public Positioned<D, ? extends LI> getCachedEmptySectionPredictorPositioned(
 		final BlockPos pos,
 		final BlockPos upperPos,
-		final ILightStorage<D, LI, ?, LLC, ?, ?> upperLightStorage
+		final ILightStorage<D, ? extends LI, ?, LLC, ?, ?> upperLightStorage
 	)
 	{
 		return this.getCachedEmptySectionPredictorPositioned(

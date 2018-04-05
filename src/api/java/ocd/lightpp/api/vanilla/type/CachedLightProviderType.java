@@ -47,9 +47,12 @@ public class CachedLightProviderType<LD, LI, WI, LC, WC>
 	public static class TypedCachedLightProvider<LD, LI, WI, LC, WC>
 	{
 		public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
-		public final ILightProvider.Cached<LD, LI, WI, LC, WC> provider;
+		public final ILightProvider.Cached<LD, ? extends LI, ? extends WI, LC, WC> provider;
 
-		public TypedCachedLightProvider(final CachedLightProviderType<LD, LI, WI, LC, WC> type, final Cached<LD, LI, WI, LC, WC> provider)
+		public TypedCachedLightProvider(
+			final CachedLightProviderType<LD, LI, WI, LC, WC> type,
+			final Cached<LD, ? extends LI, ? extends WI, LC, WC> provider
+		)
 		{
 			this.type = type;
 			this.provider = provider;

@@ -56,8 +56,8 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 
 	SectionContainer<LD, LI, C> section;
 
-	private @Nullable Writeable<LD, LI> lightInterfaceWriteable;
-	private ILightStorage.Positioned<LD, LI> lightInterface;
+	private @Nullable Writeable<LD, ? extends LI> lightInterfaceWriteable;
+	private ILightStorage.Positioned<LD, ? extends LI> lightInterface;
 
 	private final MutableBlockPos pos = new MutableBlockPos();
 	private final MutableBlockPos upperPos = new MutableBlockPos();
@@ -150,7 +150,7 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		@Nullable SectionContainer<LD, LI, C> section,
 		long sectionCoords,
 		final BlockPos pos,
-		final @Nullable ILightStorage<LD, LI, ?, C, ?, ?> upperLightStorage,
+		final @Nullable ILightStorage<LD, ? extends LI, ?, C, ?, ?> upperLightStorage,
 		final BlockPos upperPos
 	)
 	{
@@ -302,10 +302,10 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		int yIndex;
 
 		ExtendedBlockStorage blockStorage;
-		@Nullable ILightStorage<LD, LI, ?, C, ?, ?> lightStorage;
+		@Nullable ILightStorage<LD, ? extends LI, ?, C, ?, ?> lightStorage;
 
 		final MutableBlockPos upperPos = new MutableBlockPos();
-		@Nullable ILightStorage<LD, LI, ?, C, ?, ?> upperLightStorage;
+		@Nullable ILightStorage<LD, ? extends LI, ?, C, ?, ?> upperLightStorage;
 
 		boolean initLowerStorage;
 

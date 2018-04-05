@@ -41,11 +41,11 @@ public class LightProviderType<LD, LI, WI>
 	public static class TypedLightProvider<LD, LI, WI>
 	{
 		public final LightProviderType<LD, LI, WI> type;
-		public final ILightProvider<LD, LI, WI> provider;
+		public final ILightProvider<LD, ? extends LI, ? extends WI> provider;
 
 		public TypedLightProvider(
 			final LightProviderType<LD, LI, WI> type,
-			final ILightProvider<LD, LI, WI> provider
+			final ILightProvider<LD, ? extends LI, ? extends WI> provider
 		)
 		{
 			this.type = type;
