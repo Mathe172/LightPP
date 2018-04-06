@@ -100,7 +100,7 @@ public abstract class MixinChunkLightStorage implements IVanillaChunkLightProvid
 	@Override
 	public void initLightStorageRead(final ExtendedBlockStorage blockStorage, final int availableSections)
 	{
-		this.initLightStorage(blockStorage);
+		this.initEmptyLightStorage(blockStorage);
 
 		final int y = blockStorage.getYLocation();
 		final int index = y >> 4;

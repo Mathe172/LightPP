@@ -43,7 +43,7 @@ public class TransformerAnvilChunkLoaderLightStorage extends MethodTransformer.N
 
 	private static final String NBT_COMPOUND_NAME = "net/minecraft/nbt/NBTTagCompound";
 
-	private static final InvokeInjector.MethodDescriptor CREATE_LOGHT_STORAGE = new InvokeInjector.MethodDescriptor(
+	private static final InvokeInjector.MethodDescriptor CREATE_LIGHT_STORAGE = new InvokeInjector.MethodDescriptor(
 		"ocd/lightpp/api/vanilla/world/IVanillaWorldLightProvider",
 		"createLightStorage",
 		"(Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;)V",
@@ -86,7 +86,7 @@ public class TransformerAnvilChunkLoaderLightStorage extends MethodTransformer.N
 				NameRef.EXTENDED_BLOCK_STORAGE_NAME,
 				null,
 				new ArgLoader(1),
-				new InvokeInjector(CREATE_LOGHT_STORAGE)
+				new InvokeInjector(CREATE_LIGHT_STORAGE)
 			),
 			new LineInjector(
 				new MethodMatcher(NameRef.SET_BLOCK_LIGHT_MATCHER),
