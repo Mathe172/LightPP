@@ -52,6 +52,11 @@ public interface IVanillaWorldLightProvider
 	/**
 	 * May be reused per thread
 	 */
+	TypedContainer<?> getWorldLightContainer();
+
+	/**
+	 * May be reused per thread
+	 */
 	Object getWorldLightInterface(Chunk chunk, BlockPos pos);
 
 	Object getWorldLightInterface(Chunk chunk, BlockPos pos, @Nullable TypedContainer<?> container);

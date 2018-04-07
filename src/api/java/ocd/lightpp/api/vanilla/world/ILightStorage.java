@@ -30,8 +30,10 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
+import ocd.lightpp.api.util.IReleaseable;
 
-public interface ILightStorage<LD, LI, WI, LC, WC, T> extends ILightProvider.Cached<LD, LI, WI, LC, WC>
+public interface ILightStorage<LD, LI, WI, LC extends IReleaseable, WC extends IReleaseable, T>
+	extends ILightProvider.Cached<LD, LI, WI, LC, WC>
 {
 	@Override
 	Positioned.Writeable<LD, LI> bind(BlockPos pos);

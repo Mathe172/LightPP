@@ -25,7 +25,9 @@
 
 package ocd.lightpp.api.vanilla.world;
 
-public interface ILightStorageProvider<LD, LI, WI, LC, WC, T>
+import ocd.lightpp.api.util.IReleaseable;
+
+public interface ILightStorageProvider<LD, LI, WI, LC extends IReleaseable, WC extends IReleaseable, T>
 {
 	ILightStorage<LD, LI, WI, LC, WC, T> createLightStorage();
 

@@ -31,13 +31,21 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.chunk.NibbleArray;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 import ocd.lightpp.lighting.vanilla.world.VanillaWorldLightManager.LightContainer;
 
-public class VanillaWorldLightHelper<D, LI, WI, LC, SC, EC>
+public class VanillaWorldLightHelper<
+	D,
+	LI,
+	WI,
+	LC extends IReleaseable,
+	SC extends IReleaseable,
+	EC extends IReleaseable
+	>
 {
 	public final VanillaWorldLightManager<D, LI, WI, LC, ?, SC, ?, EC, ?> lightManager;
 
@@ -120,7 +128,11 @@ public class VanillaWorldLightHelper<D, LI, WI, LC, SC, EC>
 						this.copyLightData(lightStorage, lightInterface);
 					}
 				}
+
+			this.upperLightContainer.release();
 		}
+
+		this.lightContainer.release();
 	}
 
 	public TypedLightStorage<D, LI, WI, LC, ?, NibbleArray> createInitLightStorage(
@@ -238,7 +250,11 @@ public class VanillaWorldLightHelper<D, LI, WI, LC, SC, EC>
 							return false;
 					}
 				}
+
+			this.upperLightContainer.release();
 		}
+
+		this.lightContainer.release();
 
 		return true;
 	}

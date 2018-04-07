@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
@@ -89,7 +90,7 @@ public class VanillaEmptySectionLightPredictor
 	}
 
 	public static class Container
-		implements IVanillaLightInterface
+		implements IVanillaLightInterface, IReleaseable
 	{
 		private IVanillaLightInterface lightInterface;
 
@@ -111,6 +112,12 @@ public class VanillaEmptySectionLightPredictor
 		public int getLight(final EnumSkyBlock lightType)
 		{
 			return lightType == EnumSkyBlock.SKY ? this.getLight() : 0;
+		}
+
+		@Override
+		public void release()
+		{
+			this.lightInterface = null;
 		}
 
 		public static class Extended

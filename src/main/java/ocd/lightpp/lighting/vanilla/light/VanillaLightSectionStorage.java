@@ -32,6 +32,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
@@ -40,8 +41,15 @@ import ocd.lightpp.api.vanilla.world.ILightStorageProvider;
 import ocd.lightpp.lighting.vanilla.light.VanillaLightSectionStorage.Container;
 import ocd.lightpp.lighting.vanilla.light.VanillaLightSectionStorage.Container.Extended;
 
-public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>>
-	implements ILightStorage<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface, Container.Extended<T, HC>, Container<T, HC>, T>
+public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHandler.Positioned<T>> & IReleaseable>
+	implements ILightStorage<
+	IVanillaLightDescriptor,
+	IVanillaLightInterface,
+	IVanillaLightInterface,
+	Container.Extended<T, HC>,
+	Container<T, HC>,
+	T
+	>
 {
 	final ILightStorageHandler<T, HC> handler;
 	private final boolean hasSkyLight;
@@ -232,8 +240,9 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 		this.skyBlockStorages[lightType.ordinal()] = storage;
 	}
 
-	public static class Container<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>>
-		implements IVanillaLightInterface
+	public static class Container<T, HC extends Supplier<ILightStorageHandler.Positioned<T>> & IReleaseable>
+		implements IVanillaLightInterface,
+		IReleaseable
 	{
 		final HC handlerContainer;
 		VanillaLightSectionStorage<T, HC> sectionStorage;
@@ -258,7 +267,14 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 			return storage == null ? 0 : this.handlerContainer.get().get(storage);
 		}
 
-		public static class Extended<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>>
+		@Override
+		public void release()
+		{
+			this.handlerContainer.release();
+			this.sectionStorage = null;
+		}
+
+		public static class Extended<T, HC extends Supplier<ILightStorageHandler.Positioned<T>> & IReleaseable>
 			extends Container<T, HC>
 			implements ILightIterator<IVanillaLightDescriptor>,
 			Writeable<IVanillaLightDescriptor, IVanillaLightInterface>,
@@ -348,10 +364,19 @@ public class VanillaLightSectionStorage<T, HC extends Supplier<ILightStorageHand
 
 				return false;
 			}
+
+			@Override
+			public void release()
+			{
+				super.release();
+
+				this.curStorgae = null;
+			}
 		}
 	}
 
-	public static class Provider<T, HC extends Supplier<ILightStorageHandler.Positioned<T>>> implements ILightStorageProvider<
+	public static class Provider<T, HC extends Supplier<ILightStorageHandler.Positioned<T>> & IReleaseable>
+		implements ILightStorageProvider<
 		IVanillaLightDescriptor,
 		IVanillaLightInterface,
 		IVanillaLightInterface,

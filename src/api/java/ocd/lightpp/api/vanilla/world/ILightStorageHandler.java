@@ -30,9 +30,10 @@ import jline.internal.Nullable;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.world.ILightStorageHandler.Positioned;
 
-public interface ILightStorageHandler<T, C extends Supplier<Positioned<T>>>
+public interface ILightStorageHandler<T, C extends Supplier<Positioned<T>> & IReleaseable>
 {
 	T newStorage();
 

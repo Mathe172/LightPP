@@ -23,9 +23,16 @@
  *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.util;
 
-public interface ICleanable
+import ocd.lightpp.api.util.IReleaseable;
+
+public class EmptyContainer implements IReleaseable
 {
-	void cleanup();
+	public static final EmptyContainer INSTANCE = new EmptyContainer();
+
+	@Override
+	public void release()
+	{
+	}
 }

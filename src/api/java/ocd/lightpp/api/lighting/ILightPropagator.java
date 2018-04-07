@@ -25,8 +25,9 @@
 package ocd.lightpp.api.lighting;
 
 import net.minecraft.util.EnumFacing;
+import ocd.lightpp.api.util.IReleaseable;
 
-public interface ILightPropagator<LD, LCD extends ILightCollectionDescriptor<LD>, MI, SI, WI, V>
+public interface ILightPropagator<LD, LCD extends ILightCollectionDescriptor<LD>, MI, SI, WI, V> extends IReleaseable
 {
 	default void prepareSpread(final LD desc, final int light, final ILightAccess.NeighborAware<? extends SI, ? extends WI> lightAccess)
 	{
@@ -36,7 +37,8 @@ public interface ILightPropagator<LD, LCD extends ILightCollectionDescriptor<LD>
 	{
 	}
 
-	default void cleanup()
+	@Override
+	default void release()
 	{
 	}
 

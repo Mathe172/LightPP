@@ -102,9 +102,15 @@ public abstract class MixinWorldLightStorage implements IVanillaWorldLightProvid
 	}
 
 	@Override
+	public TypedContainer<?> getWorldLightContainer()
+	{
+		return this.lightContainerCache.get();
+	}
+
+	@Override
 	public Object getWorldLightInterface(final Chunk chunk, final BlockPos pos)
 	{
-		return this.getWorldLightInterface(chunk, pos, this.lightContainerCache.get());
+		return this.getWorldLightInterface(chunk, pos, this.getWorldLightContainer());
 	}
 
 	@Override

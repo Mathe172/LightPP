@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.chunk.NibbleArray;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.type.CachedLightProviderType.TypedCachedLightProvider;
 import ocd.lightpp.api.vanilla.type.ContainerType;
 import ocd.lightpp.api.vanilla.type.ContainerType.TypedContainer;
@@ -41,7 +42,17 @@ import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 
-public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
+public class VanillaWorldLightManager<
+	D,
+	LI,
+	WI,
+	LLC extends IReleaseable,
+	LWC extends IReleaseable,
+	SLC extends IReleaseable,
+	SWC extends IReleaseable,
+	ELC extends IReleaseable,
+	EWC extends IReleaseable
+	>
 {
 	public final TypedLightStorageProvider<D, LI, WI, LLC, LWC, NibbleArray> lightStorageProvider;
 	public final @Nullable TypedCachedLightProvider<D, LI, WI, SLC, SWC> skyLightProvider;
@@ -245,7 +256,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 			);
 	}
 
-	public static <D, WI, WC> WI getWorldLightInterface(
+	public static <WI, WC extends IReleaseable> WI getWorldLightInterface(
 		final BlockPos pos,
 		final ILightStorage<?, ?, WI, ?, WC, ?> lightStorage,
 		final WorldLightContainer<?, WC, ?, ?> container
@@ -259,7 +270,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		);
 	}
 
-	public static <D, WI> WI getWorldLightInterface(
+	public static <WI> WI getWorldLightInterface(
 		final BlockPos pos,
 		final ILightStorage<?, ?, WI, ?, ?, ?> lightStorage
 	)
@@ -267,7 +278,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		return lightStorage.getWorldLightInterface(getLocalPos(pos));
 	}
 
-	public static <D, WI, WC> WI getWorldLightInterface(
+	public static <WI, WC extends IReleaseable> WI getWorldLightInterface(
 		final BlockPos pos,
 		final MutableBlockPos cachedPos,
 		final ILightStorage<?, ?, WI, ?, WC, ?> lightStorage,
@@ -399,7 +410,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 			);
 	}
 
-	public static <D, LI, LC> Writeable<D, LI> getWriteable(
+	public static <D, LI, LC extends IReleaseable> Writeable<D, LI> getWriteable(
 		final BlockPos pos,
 		final ILightStorage<D, LI, ?, LC, ?, ?> lightStorage,
 		final Container<LC> container
@@ -421,7 +432,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		return lightStorage.bind(getLocalPos(pos));
 	}
 
-	public static <D, LI, LC> Writeable<D, LI> getWriteable(
+	public static <D, LI, LC extends IReleaseable> Writeable<D, LI> getWriteable(
 		final BlockPos pos,
 		final MutableBlockPos cachedPos,
 		final ILightStorage<D, LI, ?, LC, ?, ?> lightStorage,
@@ -522,7 +533,7 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		);
 	}
 
-	public static class Container<LLC>
+	public static class Container<LLC extends IReleaseable> implements IReleaseable
 	{
 		public final MutableBlockPos cachedPos = new MutableBlockPos();
 
@@ -532,9 +543,20 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 		{
 			this.lightStorageLightContainer = lightStorageLightContainer;
 		}
+
+		@Override
+		public void release()
+		{
+			this.lightStorageLightContainer.release();
+		}
 	}
 
-	public static class LightContainer<LLC, SLC, ELC> extends Container<LLC>
+	public static class LightContainer<
+		LLC extends IReleaseable,
+		SLC extends IReleaseable,
+		ELC extends IReleaseable
+		>
+		extends Container<LLC>
 	{
 		public final SLC skyLightLightContainer;
 		public final ELC emptySectionPredictorLightContainer;
@@ -550,9 +572,24 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 			this.skyLightLightContainer = skyLightLightContainer;
 			this.emptySectionPredictorLightContainer = emptySectionPredictorLightContainer;
 		}
+
+		@Override
+		public void release()
+		{
+			super.release();
+
+			this.skyLightLightContainer.release();
+			this.emptySectionPredictorLightContainer.release();
+		}
 	}
 
-	public static class WorldLightContainer<LLC, LWC, SWC, EWC> extends Container<LLC>
+	public static class WorldLightContainer<
+		LLC extends IReleaseable,
+		LWC extends IReleaseable,
+		SWC extends IReleaseable,
+		EWC extends IReleaseable
+		>
+		extends Container<LLC>
 	{
 		public final LWC lightStorageWorldLightContainer;
 		public final SWC skyLightWorldLightContainer;
@@ -570,6 +607,16 @@ public class VanillaWorldLightManager<D, LI, WI, LLC, LWC, SLC, SWC, ELC, EWC>
 			this.lightStorageWorldLightContainer = lightStorageWorldLightContainer;
 			this.skyLightWorldLightContainer = skyLightWorldLightContainer;
 			this.emptySectionPredictorWorldLightContainer = emptySectionPredictorWorldLightContainer;
+		}
+
+		@Override
+		public void release()
+		{
+			super.release();
+
+			this.lightStorageLightContainer.release();
+			this.skyLightWorldLightContainer.release();
+			this.emptySectionPredictorWorldLightContainer.release();
 		}
 	}
 }

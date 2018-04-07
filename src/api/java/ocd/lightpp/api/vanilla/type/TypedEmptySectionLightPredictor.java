@@ -25,9 +25,10 @@
 
 package ocd.lightpp.api.vanilla.type;
 
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.world.IEmptySectionLightPredictor;
 
-public class TypedEmptySectionLightPredictor<LD, LI, WI, LC, WC>
+public class TypedEmptySectionLightPredictor<LD, LI, WI, LC extends IReleaseable, WC extends IReleaseable>
 {
 	public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
 	public final IEmptySectionLightPredictor<LD, LI, ? extends WI, LC, WC> predictor;

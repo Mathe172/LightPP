@@ -189,8 +189,8 @@ public class LightingEngine<LD, LCD extends ILightCollectionDescriptor<LD>, MI, 
 		if (this.procInits() | this.procSpreads() | this.procChecks())
 			this.computeLightUpdates();
 
-		this.lightHandler.cleanup();
-		this.lightPropagator.cleanup();
+		this.lightHandler.release();
+		this.lightPropagator.release();
 
 		this.profiler.endSection();
 	}

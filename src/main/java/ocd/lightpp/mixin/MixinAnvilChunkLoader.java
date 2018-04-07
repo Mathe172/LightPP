@@ -33,7 +33,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-import ocd.lightpp.api.vanilla.world.ICleanable;
+import ocd.lightpp.api.util.ICleanable;
 
 @Mixin(AnvilChunkLoader.class)
 public class MixinAnvilChunkLoader

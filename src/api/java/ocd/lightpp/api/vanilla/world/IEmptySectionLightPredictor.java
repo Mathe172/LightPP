@@ -25,9 +25,10 @@
 package ocd.lightpp.api.vanilla.world;
 
 import net.minecraft.util.math.BlockPos;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 
-public interface IEmptySectionLightPredictor<LD, LI, WI, LC, WC>
+public interface IEmptySectionLightPredictor<LD, LI, WI, LC extends IReleaseable, WC extends IReleaseable>
 {
 	Positioned<LD, LI> bind(BlockPos pos, BlockPos upperPos, LI lightInterface);
 

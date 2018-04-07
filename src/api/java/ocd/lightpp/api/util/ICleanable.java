@@ -20,56 +20,12 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
-package ocd.lightpp.api.vanilla.world;
+package ocd.lightpp.api.util;
 
-import net.minecraft.util.math.BlockPos;
-import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
-import ocd.lightpp.api.util.IReleaseable;
-
-public interface ILightProvider<LD, LI, WI>
+public interface ICleanable
 {
-	Positioned<LD, LI> bind(BlockPos pos);
-
-	WI getWorldLightInterface(BlockPos pos);
-
-	interface Cached<D, LI, WI, LC extends IReleaseable, WC extends IReleaseable> extends ILightProvider<D, LI, WI>
-	{
-		Positioned<D, LI> bind(BlockPos pos, LC container);
-
-		WI getWorldLightInterface(BlockPos pos, WC container);
-
-		LC createLightContainer();
-
-		WC createWorldLightContainer();
-	}
-
-	interface Positioned<LD, LI>
-	{
-		int getLight(final LD desc);
-
-		ILightIterator<LD> getLightIterator();
-
-		LI getInterface();
-
-		interface Writeable<LD, LI> extends Positioned<LD, LI>
-		{
-			void set(LD desc, int val);
-
-			/**
-			 * Called after the last {@link #set} of type LD in a bulk operation
-			 */
-			default void notifyLightSet(final LD desc)
-			{
-			}
-
-			/**
-			 * Called after the last {@link #set} in a bulk operation
-			 */
-			default void notifyLightSet()
-			{
-			}
-		}
-	}
+	void cleanup();
 }

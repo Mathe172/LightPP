@@ -25,10 +25,11 @@
 
 package ocd.lightpp.api.vanilla.type;
 
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.type.ContainerType.TypedContainer;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
 
-public class TypedLightStorage<LD, LI, WI, LC, WC, T>
+public class TypedLightStorage<LD, LI, WI, LC extends IReleaseable, WC extends IReleaseable, T>
 {
 	public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
 	public final ILightStorage<LD, ? extends LI, ? extends WI, LC, WC, T> storage;

@@ -39,6 +39,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned.Writeable;
 import ocd.lightpp.api.vanilla.world.ILightStorage;
@@ -46,8 +47,17 @@ import ocd.lightpp.api.vanilla.world.IVanillaLightStorageHolder;
 import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
 import ocd.lightpp.lighting.vanilla.world.VanillaWorldLightManager.LightContainer;
 
-abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>, LI, LC, SC, EC>
-	implements ILightAccess.Extended<LD, LI, IVanillaWorldInterface.Extended>, IVanillaWorldInterface.Extended
+abstract class VanillaLightAccess<
+	LD,
+	LCD extends ILightCollectionDescriptor<LD>,
+	LI,
+	LC extends IReleaseable,
+	SC extends IReleaseable,
+	EC extends IReleaseable
+	>
+	implements ILightAccess.Extended<LD, LI, IVanillaWorldInterface.Extended>,
+	IVanillaWorldInterface.Extended,
+	IReleaseable
 {
 	private final VanillaLightHandler<LD, LCD, LI, ?, LC, SC, EC> lightHandler;
 
@@ -280,7 +290,18 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 		return this.pos;
 	}
 
-	static class SectionContainer<LD, LI, LC>
+	@Override
+	public void release()
+	{
+		this.lightContainer.release();
+
+		this.lightInterfaceWriteable = null;
+		this.lightInterface = null;
+
+		this.section = null;
+	}
+
+	static class SectionContainer<LD, LI, LC extends IReleaseable> implements IReleaseable
 	{
 		final int index;
 
@@ -317,7 +338,8 @@ abstract class VanillaLightAccess<LD, LCD extends ILightCollectionDescriptor<LD>
 			this.sectionCoords = sectionCoords;
 		}
 
-		void cleanup()
+		@Override
+		public void release()
 		{
 			this.chunk = null;
 

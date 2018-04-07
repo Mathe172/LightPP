@@ -33,6 +33,7 @@ import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.NibbleArray;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.world.ILightStorageHandler;
 import ocd.lightpp.lighting.vanilla.world.VanillaLightStorageHandler.Container;
 
@@ -127,7 +128,8 @@ public class VanillaLightStorageHandler implements ILightStorageHandler<NibbleAr
 
 	public static class Container
 		implements ILightStorageHandler.Positioned<NibbleArray>,
-		Supplier<ILightStorageHandler.Positioned<NibbleArray>>
+		Supplier<ILightStorageHandler.Positioned<NibbleArray>>,
+		IReleaseable
 	{
 		int index;
 
@@ -154,6 +156,11 @@ public class VanillaLightStorageHandler implements ILightStorageHandler<NibbleAr
 		public Positioned<NibbleArray> get()
 		{
 			return this;
+		}
+
+		@Override
+		public void release()
+		{
 		}
 	}
 }

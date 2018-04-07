@@ -30,13 +30,15 @@ import java.util.function.Supplier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import ocd.lightpp.api.lighting.ILightMap.ILightIterator;
+import ocd.lightpp.api.util.IReleaseable;
+import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
 import ocd.lightpp.api.vanilla.light.IVanillaLightInterface;
 import ocd.lightpp.api.vanilla.world.ILightProvider;
 import ocd.lightpp.lighting.vanilla.light.VanillaSkyLightProvider.Container;
-import ocd.lightpp.api.vanilla.world.ILightProvider.Positioned;
+import ocd.lightpp.util.EmptyContainer;
 
 public class VanillaSkyLightProvider
-	implements ILightProvider.Cached<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface, Container, Void>,
+	implements ILightProvider.Cached<IVanillaLightDescriptor, IVanillaLightInterface, IVanillaLightInterface, Container, EmptyContainer>,
 	IVanillaLightInterface
 {
 	@Override
@@ -58,7 +60,7 @@ public class VanillaSkyLightProvider
 	}
 
 	@Override
-	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos, final Void container)
+	public IVanillaLightInterface getWorldLightInterface(final BlockPos pos, final EmptyContainer container)
 	{
 		return this;
 	}
@@ -70,9 +72,9 @@ public class VanillaSkyLightProvider
 	}
 
 	@Override
-	public Void createWorldLightContainer()
+	public EmptyContainer createWorldLightContainer()
 	{
-		return null;
+		return EmptyContainer.INSTANCE;
 	}
 
 	@Override
@@ -85,7 +87,8 @@ public class VanillaSkyLightProvider
 		implements Positioned<IVanillaLightDescriptor, IVanillaLightInterface>,
 		Supplier<Positioned<IVanillaLightDescriptor, IVanillaLightInterface>>,
 		IVanillaLightInterface,
-		ILightIterator<IVanillaLightDescriptor>
+		ILightIterator<IVanillaLightDescriptor>,
+		IReleaseable
 	{
 		private final VanillaLightDescriptor desc = new VanillaLightDescriptor(EnumSkyBlock.SKY);
 		private boolean hasNext;
@@ -141,6 +144,11 @@ public class VanillaSkyLightProvider
 			this.hasNext = false;
 
 			return ret;
+		}
+
+		@Override
+		public void release()
+		{
 		}
 	}
 }

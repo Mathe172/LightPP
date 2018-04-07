@@ -25,9 +25,11 @@
 
 package ocd.lightpp.api.vanilla.type;
 
-public class ContainerType<C>
+import ocd.lightpp.api.util.IReleaseable;
+
+public class ContainerType<C extends IReleaseable>
 {
-	public static class TypedContainer<C>
+	public static class TypedContainer<C extends IReleaseable>
 	{
 		public final ContainerType<C> type;
 		public final C container;

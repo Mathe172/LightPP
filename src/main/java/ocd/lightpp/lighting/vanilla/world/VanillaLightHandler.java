@@ -44,6 +44,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import ocd.lightpp.api.lighting.ILightAccess;
 import ocd.lightpp.api.lighting.ILightCollectionDescriptor;
 import ocd.lightpp.api.lighting.ILightHandler;
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.type.TypedLightStorage;
 import ocd.lightpp.api.vanilla.world.ILightQueueDataset;
 import ocd.lightpp.api.vanilla.world.ILightQueueDataset.ILightCollectionQueueDataset;
@@ -52,7 +53,15 @@ import ocd.lightpp.api.vanilla.world.IVanillaWorldInterface;
 import ocd.lightpp.util.PooledIntQueue;
 import ocd.lightpp.util.PooledShortQueue;
 
-public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, LI, V, LC, SC, EC>
+public class VanillaLightHandler<
+	LD,
+	LCD extends ILightCollectionDescriptor<LD>,
+	LI,
+	V,
+	LC extends IReleaseable,
+	SC extends IReleaseable,
+	EC extends IReleaseable
+	>
 	extends VanillaLightAccess<LD, LCD, LI, LC, SC, EC>
 	implements ILightHandler<LD, LCD, LI, IVanillaWorldInterface.Extended, V>,
 	ILightAccess.VirtuallySourced.NeighborAware.Extended<LD, LI, IVanillaWorldInterface.Extended, V>
@@ -942,8 +951,13 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 	}
 
 	@Override
-	public void cleanup()
+	public void release()
 	{
+		super.release();
+
+		for (int i = 0; i < 6; ++i)
+			this.lightAccesses[i].release();
+
 		this.lastChunkCoords = -1;
 		this.lastChunk = null;
 
@@ -954,7 +968,7 @@ public class VanillaLightHandler<LD, LCD extends ILightCollectionDescriptor<LD>,
 		this.sectionCache.trim(EXPECTED_SECTION_COUNT);
 
 		for (int i = 0; i < this.sectionCount; ++i)
-			this.sectionList.get(i).cleanup();
+			this.sectionList.get(i).release();
 
 		if (this.sectionList.size() > EXPECTED_SECTION_COUNT)
 		{

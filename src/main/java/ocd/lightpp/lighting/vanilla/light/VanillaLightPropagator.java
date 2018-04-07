@@ -215,7 +215,7 @@ public class VanillaLightPropagator
 	}
 
 	@Override
-	public void cleanup()
+	public void release()
 	{
 		this.blockAccess = null;
 		this.blockState = null;

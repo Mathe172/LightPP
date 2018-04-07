@@ -25,11 +25,12 @@
 
 package ocd.lightpp.api.vanilla.type;
 
+import ocd.lightpp.api.util.IReleaseable;
 import ocd.lightpp.api.vanilla.type.ContainerType.TypedContainer;
 import ocd.lightpp.api.vanilla.world.ILightProvider;
 import ocd.lightpp.api.vanilla.world.ILightProvider.Cached;
 
-public class CachedLightProviderType<LD, LI, WI, LC, WC>
+public class CachedLightProviderType<LD, LI, WI, LC extends IReleaseable, WC extends IReleaseable>
 {
 	public final LightProviderType<LD, LI, WI> lightProviderType;
 	public final ContainerType<LC> lightContainerType;
@@ -45,7 +46,7 @@ public class CachedLightProviderType<LD, LI, WI, LC, WC>
 		this.worldLightContainerType = worldLightContainerType;
 	}
 
-	public static class TypedCachedLightProvider<LD, LI, WI, LC, WC>
+	public static class TypedCachedLightProvider<LD, LI, WI, LC extends IReleaseable, WC extends IReleaseable>
 	{
 		public final CachedLightProviderType<LD, LI, WI, LC, WC> type;
 		public final ILightProvider.Cached<LD, ? extends LI, ? extends WI, LC, WC> provider;

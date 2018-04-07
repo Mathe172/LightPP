@@ -29,8 +29,9 @@ import javax.annotation.Nullable;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import ocd.lightpp.api.util.IReleaseable;
 
-public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V>
+public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, LI, WI, V> extends IReleaseable
 {
 	ILightUpdateQueue<LD, LI, WI, V> createUpdateQueue();
 
@@ -44,7 +45,8 @@ public interface ILightHandler<LD, LCD extends ILightCollectionDescriptor<LD>, L
 	{
 	}
 
-	default void cleanup()
+	@Override
+	default void release()
 	{
 	}
 
